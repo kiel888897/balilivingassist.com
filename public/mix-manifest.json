@@ -1,0 +1,9 @@
+{
+    "/js/app.js": "/js/app.js",
+    "/css/app.css": "/css/app.css",
+    "/vendor/fontawesome/css/all.min.css": "/vendor/fontawesome/css/all.min.css",
+    "/vendor/fontawesome/webfonts/fa-brands-400.woff2": "/vendor/fontawesome/webfonts/fa-brands-400.woff2",
+    "/vendor/fontawesome/webfonts/fa-regular-400.woff2": "/vendor/fontawesome/webfonts/fa-regular-400.woff2",
+    "/vendor/fontawesome/webfonts/fa-solid-900.woff2": "/vendor/fontawesome/webfonts/fa-solid-900.woff2",
+    "/vendor/fontawesome/webfonts/fa-v4compatibility.woff2": "/vendor/fontawesome/webfonts/fa-v4compatibility.woff2"
+}

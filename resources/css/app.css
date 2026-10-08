@@ -1,0 +1,480 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        color-scheme: light;
+        --bla-ink: #18343a;
+        --bla-muted: #657b7d;
+        --bla-primary: #128477;
+        --bla-primary-dark: #0e6f65;
+        --bla-border: #dce9e5;
+        --bla-paper: #f4f8f6;
+    }
+
+    body {
+        @apply bg-slate-50 text-slate-800 antialiased;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    h1, h2, h3, h4 {
+        @apply font-display tracking-tight;
+    }
+
+    a {
+        @apply transition-colors duration-200;
+    }
+
+    button, input, select, textarea {
+        font: inherit;
+    }
+}
+
+@layer components {
+    .topbar {
+        @apply bg-bla-900 text-white;
+    }
+
+    .nav {
+        @apply border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur;
+    }
+
+    .nav-inner {
+        @apply mx-auto flex min-h-[76px] w-[min(1200px,calc(100%-32px))] items-center justify-between gap-6;
+    }
+
+    .brand {
+        @apply flex items-center gap-3 font-display text-lg font-extrabold text-bla-900;
+    }
+
+    .brand-mark {
+        @apply grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-bla-500 to-teal-300 font-display font-extrabold text-white shadow-md;
+    }
+
+    .nav-links {
+        @apply flex items-center gap-6 font-semibold text-slate-600;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+        @apply text-bla-600;
+    }
+
+    .nav-actions {
+        @apply flex items-center gap-3;
+    }
+
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl bg-bla-600 px-5 py-3 font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-bla-700 hover:shadow-md;
+    }
+
+    .btn-primary {
+        @apply bg-bla-600 text-white hover:bg-bla-700;
+    }
+
+    .btn-secondary,
+    .btn-light {
+        @apply border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-bla-100 hover:bg-bla-50 hover:text-bla-700;
+    }
+
+    .btn-danger {
+        @apply bg-rose-600 text-white hover:bg-rose-700;
+    }
+
+    .container {
+        @apply mx-auto w-[min(1200px,calc(100%-32px))];
+    }
+
+    .hero {
+        @apply relative overflow-hidden;
+    }
+
+    .hero-grid {
+        @apply grid items-center gap-12 py-16 md:grid-cols-2 md:py-24;
+    }
+
+    .hero h1 {
+        @apply font-display text-4xl font-extrabold leading-tight text-bla-900 md:text-6xl;
+    }
+
+    .hero p,
+    .lead {
+        @apply text-base leading-8 text-slate-600 md:text-lg;
+    }
+
+    .section {
+        @apply py-16 md:py-20;
+    }
+
+    .section-head {
+        @apply mb-8 flex flex-wrap items-end justify-between gap-4;
+    }
+
+    .section-title {
+        @apply mb-2 font-display text-3xl font-extrabold text-bla-900 md:text-4xl;
+    }
+
+    .section-sub {
+        @apply text-slate-500;
+    }
+
+    .cat-grid,
+    .product-grid,
+    .filter-grid {
+        @apply gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .card,
+    .product,
+    .panel,
+    .details {
+        @apply overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200;
+    }
+
+    .card:hover,
+    .product:hover {
+        @apply -translate-y-1 shadow-lg;
+    }
+
+    .card-body,
+    .product-body {
+        @apply p-5;
+    }
+
+    .category-photo,
+    .photo {
+        @apply h-48 w-full object-cover;
+    }
+
+    .category-placeholder {
+        @apply grid h-48 place-items-center bg-gradient-to-br from-bla-100 to-teal-50 font-display text-5xl font-extrabold text-bla-600;
+    }
+
+    .product-image,
+    .image-box {
+        @apply grid min-h-56 place-items-center bg-gradient-to-br from-bla-100 via-teal-50 to-amber-50 text-7xl;
+    }
+
+    .pill,
+    .eyebrow {
+        @apply inline-flex items-center rounded-full bg-bla-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider text-bla-700;
+    }
+
+    .price {
+        @apply my-3 font-display text-xl font-extrabold text-bla-700;
+    }
+
+    .meta,
+    .muted {
+        @apply text-sm leading-7 text-slate-500;
+    }
+
+    .meta-row {
+        @apply flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wide text-slate-500;
+    }
+
+    .product-layout {
+        @apply grid gap-7 lg:grid-cols-2;
+    }
+
+    .details {
+        @apply p-6 md:p-9;
+    }
+
+    .page {
+        @apply py-10 md:py-14;
+    }
+
+    .related {
+        @apply mt-14;
+    }
+
+    .process {
+        @apply grid gap-5 sm:grid-cols-2 lg:grid-cols-4;
+    }
+
+    .step,
+    .mini-box,
+    .stat {
+        @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm;
+    }
+
+    .step-number {
+        @apply mb-4 grid h-10 w-10 place-items-center rounded-full bg-bla-100 font-display font-extrabold text-bla-700;
+    }
+
+    .admin-shell {
+        @apply min-h-screen bg-slate-100;
+    }
+
+    .topbar {
+        @apply sticky top-0 z-10 flex min-h-[68px] items-center justify-between border-b border-slate-200 bg-white/90 px-8 text-slate-600 shadow-sm backdrop-blur;
+    }
+
+    .breadcrumb {
+        @apply font-semibold text-slate-500;
+    }
+
+    .topbar-link {
+        @apply font-bold text-bla-600 hover:text-bla-700;
+    }
+
+    .page-content {
+        @apply mx-auto w-full max-w-7xl px-6 py-8 md:px-8;
+    }
+
+    .page-heading {
+        @apply mb-7 flex flex-wrap items-end justify-between gap-5;
+    }
+
+    .page-heading h1 {
+        @apply font-display text-3xl font-extrabold text-bla-900;
+    }
+
+    .page-description {
+        @apply mt-2 text-sm text-slate-500;
+    }
+
+    .page-actions,
+    .actions,
+    .form-actions {
+        @apply flex flex-wrap items-center gap-3;
+    }
+
+    .panel {
+        @apply p-5 md:p-6;
+    }
+
+    .panel-heading {
+        @apply mb-5 flex flex-wrap items-center justify-between gap-3;
+    }
+
+    .panel-heading h2 {
+        @apply font-display text-lg font-extrabold text-bla-900;
+    }
+
+    .data-wrap {
+        @apply overflow-x-auto;
+    }
+
+    .data-table {
+        @apply w-full border-collapse text-left text-sm;
+    }
+
+    .data-table th {
+        @apply border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-extrabold uppercase tracking-wider text-slate-500;
+    }
+
+    .data-table td {
+        @apply border-b border-slate-100 px-4 py-4 align-middle text-slate-600;
+    }
+
+    .data-table tbody tr:hover {
+        @apply bg-bla-50/50;
+    }
+
+    .subtext {
+        @apply mt-1 block text-xs text-slate-400;
+    }
+
+    .badge {
+        @apply inline-flex rounded-full bg-bla-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-bla-700;
+    }
+
+    .form-panel {
+        @apply max-w-4xl;
+    }
+
+    .form-grid {
+        @apply grid gap-5 md:grid-cols-2;
+    }
+
+    .field {
+        @apply grid content-start gap-2;
+    }
+
+    .field-wide {
+        @apply md:col-span-2;
+    }
+
+    .field label {
+        @apply text-sm font-bold text-slate-700;
+    }
+
+    .field input:not([type=checkbox]):not([type=hidden]),
+    .field select,
+    .field textarea {
+        @apply min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-bla-500 focus:ring-4 focus:ring-bla-100;
+    }
+
+    .field textarea {
+        @apply min-h-28 resize-y;
+    }
+
+    .field-error,
+    .error {
+        @apply mt-1 text-sm font-medium text-rose-600;
+    }
+
+    .check,
+    .check-row {
+        @apply flex flex-wrap items-center gap-3;
+    }
+
+    .check {
+        @apply gap-2 font-semibold text-slate-600;
+    }
+
+    .check input {
+        @apply accent-bla-600;
+    }
+
+    .form-actions {
+        @apply mt-7 border-t border-slate-100 pt-5;
+    }
+
+    .status-message {
+        @apply mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-800;
+    }
+
+    .status-error {
+        @apply mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 font-semibold text-rose-800;
+    }
+
+    .admin-login,
+    .service-page,
+    .rental-page,
+    .service-detail-page {
+        @apply min-h-screen bg-slate-50 text-slate-800;
+    }
+
+    .admin-login .brand-side {
+        @apply flex min-h-screen flex-col justify-between bg-gradient-to-br from-bla-900 via-bla-900 to-bla-700 p-10 text-white;
+    }
+
+    .admin-login .form-side {
+        @apply grid min-h-screen place-items-center p-8;
+    }
+
+    .admin-login .form-wrap {
+        @apply w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl;
+    }
+
+    .admin-login .form-wrap h2 {
+        @apply font-display text-3xl font-extrabold text-bla-900;
+    }
+
+    .service-page .wrap,
+    .rental-page .wrap,
+    .service-detail-page .wrap {
+        @apply mx-auto w-[min(1120px,92%)];
+    }
+
+    .service-page .nav,
+    .rental-page .nav,
+    .service-detail-page .nav {
+        @apply flex items-center justify-between border-0 bg-transparent py-6 shadow-none;
+    }
+
+    .service-page .hero,
+    .rental-page .hero {
+        @apply overflow-visible py-12 md:py-16;
+    }
+
+    .service-page .hero h1,
+    .rental-page .hero h1,
+    .service-detail-page h1 {
+        @apply max-w-4xl text-4xl font-extrabold leading-tight text-bla-900 md:text-6xl;
+    }
+
+    .service-page .categories,
+    .service-page .services,
+    .rental-page .grid {
+        display: grid;
+        @apply my-7 grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .service-page .card,
+    .rental-page .card,
+    .service-detail-page .card {
+        @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    }
+
+    .service-page .card-body,
+    .rental-page .card-body {
+        @apply p-5;
+    }
+
+    .service-page .section-title,
+    .rental-page .section-title {
+        @apply mt-10 text-3xl font-extrabold text-bla-900;
+    }
+
+    .service-page .button,
+    .rental-page .button,
+    .service-detail-page .button {
+        @apply inline-flex items-center gap-2 rounded-xl bg-bla-600 px-5 py-3 font-bold text-white hover:bg-bla-700;
+    }
+
+    .public-rich-text {
+        @apply leading-7 text-slate-600;
+    }
+
+    .public-rich-text p {
+        @apply mb-4;
+    }
+
+    .public-rich-text h1,
+    .public-rich-text h2,
+    .public-rich-text h3 {
+        @apply mb-3 mt-6 font-display font-extrabold text-bla-900;
+    }
+
+    .public-rich-text ul,
+    .public-rich-text ol {
+        @apply mb-4 ml-6 list-disc space-y-2;
+    }
+
+    .public-rich-text ol {
+        @apply list-decimal;
+    }
+
+    .public-rich-text a {
+        @apply font-semibold text-bla-700 underline;
+    }
+
+    .public-rich-text img {
+        @apply h-auto max-w-full rounded-xl;
+    }
+}
+
+@media (max-width: 760px) {
+    .nav-links {
+        @apply hidden;
+    }
+
+    .nav-inner {
+        @apply min-h-0 flex-wrap py-3;
+    }
+
+    .nav-actions {
+        @apply gap-2;
+    }
+
+    .nav-actions .btn {
+        @apply px-3 py-2 text-xs;
+    }
+
+    .admin-login {
+        @apply grid-cols-1;
+    }
+
+    .admin-login .brand-side {
+        @apply min-h-0 p-6;
+    }
+
+    .admin-login .form-side {
+        @apply min-h-0;
+    }
+}

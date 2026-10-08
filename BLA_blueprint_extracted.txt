@@ -1,0 +1,261 @@
+
+--- PAGE 1 ---
+Bali Living Assist (BLA)
+ SYSTEM BLUEPRINT v1.0
+ Property Service  Supply  Rental Platform
+Purpose: This blueprint defines the business model, website structure, customer journey, admin panel,
+modules, transaction workflows, data architecture, bilingual approach, and implementation phases for BLA. It is
+intended as the functional reference before database and Laravel development.
+Core positioning: BLA is a property service, procurement, supply and rental company for villa owners and
+expatriates across Bali. BLA sources products from suppliers and coordinates projects through external
+vendors.
+
+
+--- PAGE 2 ---
+1. Business Model
+ Target customers: Villa owners and expatriates in Bali.
+ Coverage: Entire Bali, with BLA-owned delivery.
+ Supply model: Products are sourced from suppliers rather than relying on large owned inventory.
+ Project model: BLA manages projects and coordinates external vendors.
+ Products: Ready-made and custom products.
+ Rental: Tools and equipment; a product can be sold, rented, or both.
+ Payment v1: Customer places an order/request → admin confirms → customer makes manual bank transfer
+→ admin records/validates payment.
+ Revenue: Commission, agent/broker arrangements, percentage-based margin, and related service/project
+arrangements.
+2. Core Business Areas
+ SHOP: Building materials, electronics, furniture, tools and other configurable product categories.
+ SERVICES: Construction, renovation, interior, electrical, plumbing, AC, painting, pool, garden, cleaning,
+general maintenance and any future service categories.
+ RENTAL: Rental of tools/equipment. Initial categories: Air Compressors and Air Tools; Compaction; Concrete;
+Material Handling; Power & Hand Tools; Scaffolding and Ladders; Vehicles; Welding.
+ PROJECTS: Multi-step work coordinated by BLA and external vendors.
+ REQUEST ASSISTANCE: General lead/request channel for needs that do not fit a standard product or
+service.
+3. Product Master Concept
+ A single master Product record can support both sale and rental. This avoids duplicate records when the same
+item is both sold and rented.
+ Availability flags: For Sale, For Rental. Either, both, or neither while inactive.
+ Sale pricing: Fixed Price, Request Price, or Custom.
+ Rental pricing: Initially daily pricing; architecture should allow hourly, weekly and monthly pricing later.
+ Rental-specific data: rental price, pricing unit, security deposit, rentable quantity, availability/reservation
+rules.
+ Customer visibility: Customers see only the final BLA price. Supplier cost, internal margin, commission and
+vendor cost remain internal/admin data.
+ Categories: Product categories and Rental categories are managed separately, but a single product may be
+linked to both.
+4. Product Detail UX
+ A rental-enabled product detail page should show a compact sale section and rental section when both are
+enabled.
+ Example: Concrete Mixer — Buy: Rp25,000,000; Rent: Rp350,000/day. Rental section includes start date,
+end date, duration, availability check and Add Rental to Cart.
+ Sale CTA: Quantity + Add to Cart.
+
+
+--- PAGE 3 ---
+ Rental CTA: Start Date + End Date + duration/availability + Add Rental to Cart.
+ Mixed cart: The same product can appear once as SALE and once as RENTAL because cart items carry a
+transaction type.
+5. Homepage Blueprint
+ Header: Logo; Shop; Services; Rental; Projects; About; language EN/ID; Login; Cart.
+ Hero: 3-slide banner for Shop, Services and Rental, each with image, bilingual text, CTA and link.
+ Shop by Category: Dynamic product categories configured by admin.
+ Brand/Promotional separator: Property-focused message such as “Everything Your Property Needs. One
+Assist.” with CTA.
+ Services: Dynamic service categories configured by admin.
+ Assistance CTA: “Need Something Specific?” → Request Assistance.
+ Rental: Dynamic rental categories.
+ How BLA Works: Tell Us → Source & Coordinate → Confirm Price → Deliver / Complete.
+ Footer: Brand, Shop, Services, Rental, Company, Contact, language, legal links.
+6. Customer Website
+ Public: Home, Shop, Product Detail, Services, Service Detail, Rental, Rental Product Detail, Projects, About,
+Contact, Request Assistance, Cart, Login/Register, legal pages.
+ Customer account: Dashboard, Orders, Quotations, Projects, Rentals, Service Requests, Invoices,
+Payments, Addresses, Profile.
+ Customer principle: Keep the account focused on the customer’s transactions and requests; never expose
+internal supplier cost, vendor cost or commission.
+7. Admin Panel
+ Dashboard: Orders, new requests, quotations, pending payments, active projects, rental bookings, sales and
+BLA commission.
+ Website: Homepage management, hero slides, promotional sections, menus, translations, banners and
+content.
+ Catalog: Products, product categories, brands, images, pricing, sale/rental availability.
+ Services: Service categories, services, requests, scheduling.
+ Rental: Rental categories, rental-enabled products, availability, bookings, deposits, returns.
+ Commerce: Carts, orders, quotations, invoices, payments.
+ Operations: Projects, tasks, vendors, suppliers, delivery.
+ Finance: Internal cost, commission/margin, payment records and reports.
+ Users: Customer and admin users, roles and permissions.
+ Settings: Languages, delivery rates, business settings, notification templates and other configuration.
+8. Admin Roles & Permissions
+ Customer: Own account and transactions only.
+
+
+--- PAGE 4 ---
+ Super Admin: Full system access.
+ Sales: Customers, requests, quotations, orders and customer communication.
+ Product Manager: Products, categories, suppliers and catalog management.
+ Project Manager: Service requests, projects, tasks, vendors and schedules.
+ Rental Manager: Rental catalog, availability, bookings, deposits and returns.
+ Finance: Invoices, payments, commissions and financial reporting.
+ Roles should be permission-driven. Menus are generated from permissions so each login sees only relevant
+sections.
+9. Core Transaction Workflows
+ Fixed-price sale: Product → Cart → Checkout → Order → Admin confirmation → Awaiting payment →
+Manual bank transfer → Payment verification → Processing → Delivery → Completed.
+ Request-price/custom: Product/Service → Request Quote → Admin review → Supplier/vendor sourcing →
+Internal cost → BLA final price → Quotation → Customer acceptance → Order → Payment → Fulfillment.
+ Service: Request Assistance/Service → Admin review → Vendor coordination → Quotation → Acceptance →
+Payment → Schedule → Vendor assigned → In progress → Completed.
+ Rental: Rental product → Dates → Availability → Cart → Order → Admin confirmation → Payment/deposit →
+Reserved → Out/Rented → Return → Deposit handling → Completed.
+ Mixed order: One order can contain SALE and RENTAL items and service-related items. Each item retains its
+transaction type and operational requirements.
+10. Rental Rules
+ Rental availability must be date-aware. A product can have a rentable quantity and overlapping reservations
+must reduce availability.
+ Rental item should support start date, end date, duration, unit price, deposit and delivery.
+ Future pricing units can include hourly, daily, weekly and monthly.
+ Rental return should record returned date, condition, damage/notes and deposit outcome where applicable.
+ Sale inventory and rental availability are operationally different; do not assume a sale quantity is automatically
+rentable.
+11. Cart & Checkout
+ Cart item should include product, transaction type (SALE/RENTAL), quantity and pricing snapshot.
+ Rental cart item additionally stores rental start/end dates, duration and rental price snapshot.
+ Service/custom items may enter the quotation flow rather than direct checkout when a final price is not known.
+ Cart can contain fixed-price sale items and rental items together. If a custom/request-price item requires
+quotation, the system should clearly route the customer to Request Quote rather than pretending it has a
+checkout price.
+12. Delivery
+ BLA uses its own delivery across Bali.
+ Delivery calculation should support distance, weight and volume.
+
+
+--- PAGE 5 ---
+ Admin should be able to configure delivery rates and override the calculated amount when necessary.
+ Recommended conceptual model: base fee + distance component + weight component + volume component,
+with optional zones/overrides later.
+ Delivery should be attached to the relevant order/fulfillment and have its own status.
+13. Bilingual Architecture
+ Languages: English (EN) and Indonesian (ID).
+ Use translation records rather than hard-coded name_en/name_id fields wherever practical.
+ Core translatable entities: products, categories, services, rental categories, homepage slides/sections, static
+pages, FAQs and future content.
+ Customer language preference can be stored for logged-in customers; session/cookie can handle guests.
+ Prices, SKU, internal IDs and transaction numbers remain language-neutral.
+ Admin should be able to see translation completeness and edit English/Indonesian content.
+14. Suggested Data Model
+ Identity: users, roles, permissions, role_user, permission_role.
+ Customer: customers, addresses.
+ Catalog: products, product_translations, product_images, product_categories, categories,
+category_translations, brands (optional), product_prices.
+ Services: service_categories, service_category_translations, services, service_translations,
+service_requests.
+ Rental: rental_categories, rental_category_translations, rental_settings/product rental fields, rental_bookings,
+rental_booking_items, rental_returns.
+ Commerce: carts, cart_items, quotations, quotation_items, orders, order_items, invoices, invoice_items,
+payments.
+ Operations: projects, project_tasks, project_files/notes, vendors, vendor_jobs, suppliers,
+purchase_requests/orders.
+ Delivery: delivery_rates, deliveries.
+ Finance: commission_rules, order_commissions/earnings, internal_costs.
+ Website: hero_slides, homepage_sections, pages, page_translations, menus/menu_items.
+ System: notifications, activity_logs, settings.
+15. Important Database Principles
+ Do not duplicate a product just because it can be sold and rented. Use one Product master with sale/rental
+capabilities.
+ Keep customer price separate from internal supplier cost and BLA commission/margin.
+ Store transaction pricing as snapshots on quotation/order items so historical orders do not change when the
+product price changes later.
+ Use status fields consistently and use timestamps/audit information for operational traceability.
+ Categories and homepage content should be admin-managed, not hard-coded.
+
+
+--- PAGE 6 ---
+ Design for future vendors/suppliers without requiring them to have their own portal in v1.
+16. Status Model
+ Order: DRAFT → PENDING_CONFIRMATION → CONFIRMED → AWAITING_PAYMENT → PAID →
+PROCESSING → READY/DELIVERING → COMPLETED; CANCELLED as an alternate terminal path.
+ Quotation: DRAFT → SENT → VIEWED → ACCEPTED or REJECTED; EXPIRED where applicable.
+ Service Request: NEW → UNDER_REVIEW → QUOTATION → APPROVED → SCHEDULED →
+IN_PROGRESS → COMPLETED; CANCELLED where applicable.
+ Rental: REQUESTED → CONFIRMED → AWAITING_PAYMENT → PAID → RESERVED → OUT →
+RETURNED → COMPLETED; CANCELLED where applicable.
+ Payment: PENDING → SUBMITTED → VERIFIED/PAID or REJECTED.
+17. Request Assistance
+ This is a central BLA lead/request mechanism for anything not easily purchased as a standard product.
+ Suggested fields: customer/contact, property location, request category, description, budget (optional),
+preferred date, photos/files, urgency and notes.
+ Admin converts the request into a quotation, service job, project, product sourcing task or other appropriate
+workflow.
+ Example: “Renovate my 3-bedroom villa” can become a project with vendors, supplier items, quotation,
+payment milestones and tasks.
+18. Project Management
+ Projects represent larger or multi-step work such as renovation, construction or major maintenance.
+ Project data can include customer, property/location, scope, quotation, vendor(s), tasks, schedule, progress,
+documents/photos, costs and customer-facing status.
+ Customer should see high-level progress, documents and invoices without seeing internal vendor cost or BLA
+margin.
+19. Supplier & Vendor Management
+ Supplier: Primarily provides products/materials.
+ Vendor: Performs services/work.
+ Supplier/vendor records should include contact information, categories, service/product coverage, operating
+areas, status, notes and internal performance data.
+ v1 can be admin-only management; supplier/vendor portal login can be a future phase.
+20. Homepage / Content Management
+ Admin-managed hero slides: image, EN/ID title, EN/ID description, CTA label, CTA link, sort order and active
+status.
+ Admin-managed homepage category visibility: show/hide and sort order for Shop, Service and Rental
+categories.
+ Admin-managed promotional sections: image, EN/ID title, EN/ID description, CTA, link, order and active
+status.
+
+
+--- PAGE 7 ---
+ Homepage should be data-driven so content changes do not require code changes.
+21. Notifications
+ Customer notifications should cover quotation sent, quotation accepted, order confirmed, payment
+confirmation, service schedule, rental confirmation, delivery status and completion.
+ Initial implementation can use email and/or WhatsApp manually/through future integration; the system should
+keep notification events independent of the provider.
+22. Security & Access
+ Customers can access only their own customer records, addresses, quotations, orders, projects, rentals,
+invoices and payments.
+ Admin access is permission-based.
+ Supplier cost, vendor cost, commission and internal notes are never exposed to customers.
+ Important admin actions should be logged, especially price changes, order status changes, payment
+verification and commission/cost changes.
+23. Recommended Development Phases
+ Phase 1 — Foundation: authentication, roles/permissions, bilingual framework, product/category
+management, service/category management, rental category management, homepage management.
+ Phase 2 — Commerce: product detail, sale pricing, rental pricing, availability, cart, mixed cart, checkout,
+order management and manual payment.
+ Phase 3 — Quotation: request price, custom products, service requests, quotations, customer acceptance
+and invoice flow.
+ Phase 4 — Operations: vendors, suppliers, projects, tasks, schedules and delivery calculation.
+ Phase 5 — Rental operations: reservations, deposits, returns, condition tracking and rental reporting.
+ Phase 6 — Advanced: customer notifications, reporting, vendor/supplier portals, online payment integration,
+advanced inventory/procurement and accounting integrations.
+24. Technology Direction
+ Preferred future stack: Laravel + Tailwind CSS, as planned by the owner.
+ Technology should be selected/confirmed after the functional blueprint and database/ERD are approved.
+ Recommended implementation principle: build modularly around Catalog, Commerce, Services, Rental,
+Projects, Delivery, Finance and Website Management rather than one large monolithic feature set.
+25. MVP Acceptance Criteria
+ Admin can create/edit/deactivate product categories without code changes.
+ Admin can create a product that is sale-only, rental-only or both.
+ Customer can see a sale price and rental section on the same product detail page when both are enabled.
+ Customer can add sale and rental versions of the same product to one cart.
+ Rental dates are checked against availability.
+ Customer can request price for uncertain/custom products.
+
+
+--- PAGE 8 ---
+ Admin can create a quotation with a final BLA price while internal costs remain hidden.
+ Customer can accept a quotation.
+ Admin can confirm an order and record manual bank transfer payment.
+ Delivery can be calculated/configured using distance, weight and volume with admin override.
+ Homepage categories, hero slides and promotional sections are admin-managed.
+ Customer and admin menus are permission/role appropriate.
+ English and Indonesian content are supported across core customer-facing content.
+
