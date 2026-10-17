@@ -171,7 +171,7 @@ class AdminPortfolioController extends Controller
     private function storeImages(PortfolioProject $project, array $uploads, array &$uploadedPaths, int $sortOrder): void
     {
         foreach ($uploads as $file) {
-            $path = $file->store('portfolio', 'public');
+            $path = \App\Support\ImageUploader::store($file, 'portfolio');
             if (!$path) {
                 throw new \RuntimeException('The portfolio photo could not be saved.');
             }

@@ -25,7 +25,7 @@ class AdminDeliveryController extends Controller
         $data = $this->validateVehicle($request);
         unset($data['remove_image']);
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('delivery-vehicles', 'public');
+            $data['image_path'] = \App\Support\ImageUploader::store($request->file('image'), 'delivery-vehicles');
         }
 
         DeliveryVehicle::create($data);
@@ -48,7 +48,7 @@ class AdminDeliveryController extends Controller
             if ($vehicle->image_path) {
                 Storage::disk('public')->delete($vehicle->image_path);
             }
-            $data['image_path'] = $request->file('image')->store('delivery-vehicles', 'public');
+            $data['image_path'] = \App\Support\ImageUploader::store($request->file('image'), 'delivery-vehicles');
         }
 
         $vehicle->update($data);

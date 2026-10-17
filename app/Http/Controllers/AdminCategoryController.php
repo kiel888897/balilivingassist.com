@@ -97,7 +97,7 @@ class AdminCategoryController extends Controller
         $data['slug'] = $this->uniqueSlug($data['name']);
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('categories', 'public');
+            $data['image_path'] = \App\Support\ImageUploader::store($request->file('image'), 'categories');
         }
 
         Category::create($data);
@@ -131,7 +131,7 @@ class AdminCategoryController extends Controller
 
         if ($request->hasFile('image')) {
             $oldImagePath = $category->image_path;
-            $data['image_path'] = $request->file('image')->store('categories', 'public');
+            $data['image_path'] = \App\Support\ImageUploader::store($request->file('image'), 'categories');
 
             if ($oldImagePath) {
                 Storage::disk('public')->delete($oldImagePath);

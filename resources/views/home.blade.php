@@ -4,6 +4,24 @@
 @section('meta_description', __('site.home.intro'))
 
 @section('content')
+@php
+    // Fallback photos (public/images/home) used when a record has no uploaded image.
+    $homeImages = [
+        'building-materials' => 'building_materials',
+        'electronics' => 'electronics_appliances',
+        'electrical-supplies' => 'electrical_supplies',
+        'furniture' => 'furniture',
+        'drilling-tools' => 'drilling_tools',
+        'power-tools' => 'power_tools',
+        'tile-cutting-tools' => 'tile_cutting_tools',
+        'cement-premium' => 'cement_premium',
+        'smart-water-pump' => 'smart_water_pump',
+        'outdoor-dining-set' => 'outdoor_dining_set',
+        'concrete-mixer' => 'concrete_mixer',
+        'villa-renovation-package' => 'villa_renovation_package',
+        'property-maintenance' => 'property_maintenance',
+    ];
+@endphp
 <section class="relative overflow-hidden bg-gradient-to-br from-bla-50 via-white to-teal-50">
     <div class="mx-auto grid w-[min(1200px,calc(100%-32px))] items-center gap-12 py-16 md:grid-cols-2 md:py-24">
         <div>
@@ -28,21 +46,27 @@
             </div>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
-            <a href="{{ route('shop') }}" class="group rounded-3xl bg-bla-900 p-7 text-white shadow-xl sm:col-span-2">
+            <a href="{{ route('shop') }}" class="group relative isolate overflow-hidden rounded-3xl bg-bla-900 p-7 text-white shadow-xl sm:col-span-2">
+                @include('public.partials.home-img', ['key' => 'shop_hero_bg', 'widths' => [640, 1024, 1536], 'sizes' => '(min-width: 768px) 560px, 100vw', 'class' => 'absolute inset-0 -z-20 h-full w-full object-cover', 'width' => 1536, 'height' => 1024, 'eager' => true])
+                <span class="absolute inset-0 -z-10 bg-gradient-to-r from-bla-900/90 via-bla-900/70 to-bla-900/30" aria-hidden="true"></span>
                 <span class="grid h-12 w-12 place-items-center rounded-2xl bg-white/10 text-xl text-teal-200"><i class="fa-solid fa-house-chimney" aria-hidden="true"></i></span>
                 <h2 class="mt-8 font-display text-2xl font-extrabold">{{ __('site.nav.shop') }}</h2>
-                <p class="mt-2 text-sm leading-6 text-teal-50/70">{{ __('site.home.shop_subtitle') }}</p>
+                <p class="mt-2 max-w-sm text-sm leading-6 text-teal-50/90">{{ __('site.home.shop_subtitle') }}</p>
                 <span class="mt-6 inline-flex items-center gap-2 text-sm font-bold text-teal-200">{{ __('site.home.view_all') }} <i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></span>
             </a>
-            <a href="{{ route('services') }}" class="rounded-3xl border border-bla-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                <span class="grid h-11 w-11 place-items-center rounded-xl bg-bla-50 text-lg text-bla-700"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
-                <h2 class="mt-5 font-display text-xl font-extrabold text-bla-900">{{ __('site.nav.services') }}</h2>
-                <p class="mt-2 text-sm leading-6 text-slate-500">{{ __('site.home.service_subtitle') }}</p>
+            <a href="{{ route('services') }}" class="group relative isolate overflow-hidden rounded-3xl border border-bla-100 bg-bla-900 p-6 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                @include('public.partials.home-img', ['key' => 'services_hero_bg', 'widths' => [640, 1024], 'sizes' => '(min-width: 768px) 280px, 100vw', 'class' => 'absolute inset-0 -z-20 h-full w-full object-cover', 'width' => 1024, 'height' => 683])
+                <span class="absolute inset-0 -z-10 bg-gradient-to-t from-bla-900/90 via-bla-900/60 to-bla-900/30" aria-hidden="true"></span>
+                <span class="grid h-11 w-11 place-items-center rounded-xl bg-white/90 text-lg text-bla-700"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
+                <h2 class="mt-5 font-display text-xl font-extrabold">{{ __('site.nav.services') }}</h2>
+                <p class="mt-2 text-sm leading-6 text-white/90">{{ __('site.home.service_subtitle') }}</p>
             </a>
-            <a href="{{ route('rental') }}" class="rounded-3xl border border-amber-100 bg-amber-50 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                <span class="grid h-11 w-11 place-items-center rounded-xl bg-white text-lg text-amber-700"><i class="fa-solid fa-truck-ramp-box" aria-hidden="true"></i></span>
-                <h2 class="mt-5 font-display text-xl font-extrabold text-bla-900">{{ __('site.nav.rental') }}</h2>
-                <p class="mt-2 text-sm leading-6 text-slate-600">{{ __('site.home.rental_subtitle') }}</p>
+            <a href="{{ route('rental') }}" class="group relative isolate overflow-hidden rounded-3xl border border-amber-100 bg-bla-900 p-6 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                @include('public.partials.home-img', ['key' => 'rental_hero_bg', 'widths' => [640, 1024], 'sizes' => '(min-width: 768px) 280px, 100vw', 'class' => 'absolute inset-0 -z-20 h-full w-full object-cover', 'width' => 1024, 'height' => 683])
+                <span class="absolute inset-0 -z-10 bg-gradient-to-t from-bla-900/90 via-bla-900/60 to-bla-900/30" aria-hidden="true"></span>
+                <span class="grid h-11 w-11 place-items-center rounded-xl bg-white/90 text-lg text-amber-700"><i class="fa-solid fa-truck-ramp-box" aria-hidden="true"></i></span>
+                <h2 class="mt-5 font-display text-xl font-extrabold">{{ __('site.nav.rental') }}</h2>
+                <p class="mt-2 text-sm leading-6 text-white/90">{{ __('site.home.rental_subtitle') }}</p>
             </a>
         </div>
     </div>
@@ -64,6 +88,8 @@
             <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                 @if ($category->image_path)
                 <img class="h-48 w-full object-cover" src="{{ asset('storage/' . $category->image_path) }}" alt="{{ $category->name }}" loading="lazy" width="600" height="360">
+                @elseif (isset($homeImages[$category->slug]))
+                @include('public.partials.home-img', ['key' => $homeImages[$category->slug], 'widths' => [480, 800], 'sizes' => '(min-width: 1024px) 384px, (min-width: 640px) 50vw, 100vw', 'alt' => $category->name, 'class' => 'h-48 w-full object-cover', 'width' => 800, 'height' => 533])
                 @else
                 <div class="grid h-48 place-items-center bg-gradient-to-br from-bla-100 to-teal-50 text-5xl font-extrabold text-bla-600" aria-hidden="true">{{ strtoupper(substr($category->name, 0, 1)) }}</div>
                 @endif
@@ -89,7 +115,7 @@
             </div>
             <a href="{{ route('services') }}" class="font-bold text-bla-700 hover:text-bla-900">{{ __('site.home.view_all') }} <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></a>
         </div>
-        @include('public.partials.service-area-cards', ['serviceGroups' => $serviceGroups])
+        @include('public.partials.service-area-cards', ['serviceGroups' => $serviceGroups, 'withImages' => true])
     </div>
 </section>
 @endif
@@ -110,6 +136,8 @@
             <a href="{{ route('rental') }}" class="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-lg">
                 @if ($category->image_path)
                 <img class="h-36 w-full object-cover" src="{{ asset('storage/' . $category->image_path) }}" alt="{{ $category->name }}" loading="lazy" width="480" height="288">
+                @elseif (isset($homeImages[$category->slug]))
+                @include('public.partials.home-img', ['key' => $homeImages[$category->slug], 'widths' => [480, 800], 'sizes' => '(min-width: 1024px) 288px, (min-width: 640px) 50vw, 100vw', 'alt' => $category->name, 'class' => 'h-36 w-full object-cover', 'width' => 800, 'height' => 533])
                 @else
                 <div class="grid h-36 place-items-center bg-gradient-to-br from-amber-50 to-bla-50 text-3xl text-bla-600"><i class="fa-solid fa-toolbox" aria-hidden="true"></i></div>
                 @endif
@@ -136,6 +164,8 @@
             <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 @if ($product->primary_image_path)
                 <div class="grid h-44 place-items-center bg-white p-4"><img src="{{ asset('storage/' . $product->primary_image_path) }}" alt="{{ $product->name }}" class="h-full w-full object-contain" width="480" height="320" loading="lazy"></div>
+                @elseif (isset($homeImages[$product->slug]))
+                @include('public.partials.home-img', ['key' => $homeImages[$product->slug], 'widths' => [480, 800], 'sizes' => '(min-width: 1024px) 384px, (min-width: 640px) 50vw, 100vw', 'alt' => $product->name, 'class' => 'h-44 w-full object-cover', 'width' => 800, 'height' => 533])
                 @else
                 <div class="grid h-44 place-items-center bg-gradient-to-br from-bla-100 to-amber-50 text-5xl text-bla-500"><i class="fa-solid fa-box-open" aria-hidden="true"></i></div>
                 @endif

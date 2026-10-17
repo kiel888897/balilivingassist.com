@@ -69,7 +69,7 @@ class AdminProductDetailController extends Controller
 
                 $sortOrder = (int) $product->images()->max('sort_order') + 1;
                 foreach ($request->file('images', []) as $file) {
-                    $path = $file->store('products', 'public');
+                    $path = \App\Support\ImageUploader::store($file, 'products');
                     if (!$path) {
                         throw new \RuntimeException('The product image could not be saved.');
                     }

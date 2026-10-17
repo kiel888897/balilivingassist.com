@@ -53,7 +53,7 @@ class AdminController extends Controller
         $data = $this->validateProduct($request);
         $data['slug'] = $this->uniqueSlug($data['name']);
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = \App\Support\ImageUploader::store($request->file('image'), 'products');
         }
         unset($data['image'], $data['remove_image'], $data['images']);
 
@@ -168,7 +168,7 @@ class AdminController extends Controller
         $data['slug'] = $this->uniqueSlug($data['name'], $product);
         $oldImagePath = $product->image_path;
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = \App\Support\ImageUploader::store($request->file('image'), 'products');
         } elseif ($request->boolean('remove_image')) {
             $data['image_path'] = null;
         }
@@ -264,7 +264,7 @@ class AdminController extends Controller
         foreach ($request->file('images', []) as $image) {
             ProductImage::create([
                 'product_id' => $product->id,
-                'image_path' => $image->store('products', 'public'),
+                'image_path' => \App\Support\ImageUploader::store($image, 'products'),
                 'sort_order' => $sortOrder++,
             ]);
         }
