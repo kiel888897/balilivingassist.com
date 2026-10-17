@@ -30,7 +30,7 @@
         <span class="muted">{{ $quotations->count() }} total</span>
     </div>
     <div class="data-wrap">
-        <table class="data-table">
+        <table class="data-table" data-searchable>
             <thead>
                 <tr>
                     <th>Quotation</th>

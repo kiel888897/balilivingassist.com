@@ -455,6 +455,36 @@
             outline-offset: 2px;
         }
 
+        .table-search {
+            position: relative;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .table-search i {
+            position: absolute;
+            left: 34px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7b8a86;
+            pointer-events: none;
+        }
+
+        .table-search input {
+            width: 100%;
+            max-width: 380px;
+            min-height: 40px;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font: inherit;
+        }
+
+        .table-search input:focus {
+            outline: 3px solid rgba(8, 126, 121, .25);
+            border-color: #087e79;
+        }
+
         .actions {
             display: flex;
             align-items: center;
@@ -1166,7 +1196,39 @@
     @stack('scripts')
     <script>
         (function () {
-            var shell = document.querySelector('[data-admin-shell]');
+            document.querySelectorAll('table[data-searchable]').forEach(function (table) {
+                var body = table.tBodies[0];
+                if (!body) return;
+                var rows = Array.prototype.filter.call(body.rows, function (r) { return !r.querySelector('td[colspan]'); });
+                if (!rows.length) return;
+
+                var wrap = table.closest('.data-wrap') || table;
+                var bar = document.createElement('div');
+                bar.className = 'table-search';
+                bar.innerHTML = '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>' +
+                    '<input type="search" placeholder="Search..." aria-label="Search this list" autocomplete="off">';
+                wrap.parentNode.insertBefore(bar, wrap);
+
+                var empty = document.createElement('tr');
+                empty.hidden = true;
+                empty.innerHTML = '<td class="muted" colspan="' + table.tHead.rows[0].cells.length + '">No matching results.</td>';
+                body.appendChild(empty);
+
+                bar.querySelector('input').addEventListener('input', function (e) {
+                    var q = e.target.value.trim().toLowerCase();
+                    var shown = 0;
+                    rows.forEach(function (row) {
+                        var match = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+                        row.hidden = !match;
+                        if (match) shown++;
+                    });
+                    empty.hidden = shown > 0;
+                });
+            });
+        })();
+
+        (function () {
+            var shell =  document.querySelector('[data-admin-shell]');
             var toggle = document.querySelector('[data-sidebar-toggle]');
             var icon = document.querySelector('[data-sidebar-toggle-icon]');
 

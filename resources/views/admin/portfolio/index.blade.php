@@ -19,7 +19,7 @@
         <span class="muted">{{ $projects->count() }} projects</span>
     </div>
     <div class="data-wrap">
-        <table class="data-table">
+        <table class="data-table" data-searchable>
             <thead>
                 <tr>
                     <th>Project</th>

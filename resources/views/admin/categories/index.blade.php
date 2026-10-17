@@ -15,7 +15,7 @@
         <span class="muted">{{ $categories->count() }} total</span>
     </div>
     <div class="data-wrap">
-        <table class="data-table">
+        <table class="data-table" data-searchable>
             <thead>
                 <tr>
                     <th>Category</th>

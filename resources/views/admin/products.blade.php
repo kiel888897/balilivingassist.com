@@ -17,7 +17,7 @@
         <span class="muted">{{ $products->count() }} products</span>
     </div>
     <div class="data-wrap">
-        <table class="data-table">
+        <table class="data-table" data-searchable>
             <thead>
                 <tr>
                     <th>Product</th>
