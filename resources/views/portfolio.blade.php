@@ -4,11 +4,20 @@
 @section('meta_description', __('site.portfolio.intro'))
 
 @section('content')
-<section class="bg-gradient-to-br from-bla-50 via-white to-teal-50 py-16 md:py-24">
-    <div class="mx-auto w-[min(1000px,calc(100%-32px))] text-center">
-        <span class="inline-flex rounded-full bg-bla-100 px-4 py-2 text-xs font-extrabold uppercase tracking-[.16em] text-bla-700">{{ __('site.portfolio.eyebrow') }}</span>
-        <h1 class="mt-5 font-display text-4xl font-extrabold text-bla-900 md:text-6xl">{{ __('site.portfolio.title') }}</h1>
-        <p class="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-600">{{ __('site.portfolio.intro') }}</p>
+<section class="relative isolate overflow-hidden bg-bla-900">
+    <picture>
+        <source media="(min-width: 1024px)" type="image/webp"
+                srcset="{{ asset('images/portfolio/hero-1280.webp') }} 1280w, {{ asset('images/portfolio/hero-1792.webp') }} 1792w" sizes="100vw">
+        <source media="(min-width: 768px)" type="image/webp" srcset="{{ asset('images/portfolio/hero-1024.webp') }}">
+        <img src="{{ asset('images/portfolio/hero-mobile-800.webp') }}" alt="" width="800" height="400"
+             fetchpriority="high" decoding="async"
+             class="block aspect-[2/1] w-full object-cover md:absolute md:inset-0 md:-z-20 md:aspect-auto md:h-full">
+    </picture>
+    <div class="absolute inset-0 -z-10 hidden bg-gradient-to-r from-bla-900/80 via-bla-900/40 to-transparent md:block"></div>
+    <div class="mx-auto w-[min(1200px,calc(100%-32px))] py-8 md:flex md:min-h-[440px] md:flex-col md:justify-center md:py-16 lg:min-h-[500px]">
+        <span class="inline-flex w-fit rounded-full bg-white/15 px-4 py-2 text-xs font-extrabold uppercase tracking-[.16em] text-white ring-1 ring-white/30 backdrop-blur-sm">{{ __('site.portfolio.eyebrow') }}</span>
+        <h1 class="mt-5 max-w-xl font-display text-4xl font-extrabold text-white md:text-6xl">{{ __('site.portfolio.title') }}</h1>
+        <p class="mt-5 max-w-md text-lg leading-8 text-white/90">{{ __('site.portfolio.intro') }}</p>
     </div>
 </section>
 <section class="py-14 md:py-20">

@@ -14,11 +14,20 @@
 @endpush
 
 @section('content')
-<section class="bg-gradient-to-br from-bla-50 via-white to-teal-50 py-12 md:py-16">
-    <div class="mx-auto w-[min(1400px,calc(100%-32px))]">
-        <p class="text-xs font-extrabold uppercase tracking-[.16em] text-bla-600">{{ __('site.delivery.eyebrow') }}</p>
-        <h1 class="mt-3 font-display text-4xl font-extrabold text-bla-900 md:text-5xl">{{ __('site.delivery.title') }}</h1>
-        <p class="mt-4 max-w-2xl text-lg leading-8 text-slate-600">{{ __('site.delivery.intro') }}</p>
+<section class="relative isolate overflow-hidden bg-bla-900">
+    <picture>
+        <source media="(min-width: 1024px)" type="image/webp"
+                srcset="{{ asset('images/delivery/hero-1280.webp') }} 1280w, {{ asset('images/delivery/hero-1920.webp') }} 1920w" sizes="100vw">
+        <source media="(min-width: 768px)" type="image/webp" srcset="{{ asset('images/delivery/hero-1024.webp') }}">
+        <img src="{{ asset('images/delivery/hero-mobile-800.webp') }}" alt="" width="800" height="416"
+             fetchpriority="high" decoding="async"
+             class="block aspect-[2/1] w-full object-cover md:absolute md:inset-0 md:-z-20 md:aspect-auto md:h-full">
+    </picture>
+    <div class="absolute inset-0 -z-10 hidden bg-gradient-to-r from-bla-900/85 via-bla-900/50 to-transparent md:block"></div>
+    <div class="mx-auto w-[min(1400px,calc(100%-32px))] py-8 md:flex md:min-h-[440px] md:flex-col md:justify-center md:py-16 lg:min-h-[500px]">
+        <p class="text-xs font-extrabold uppercase tracking-[.16em] text-teal-100">{{ __('site.delivery.eyebrow') }}</p>
+        <h1 class="mt-3 max-w-xl font-display text-4xl font-extrabold text-white md:text-5xl">{{ __('site.delivery.title') }}</h1>
+        <p class="mt-4 max-w-md text-lg leading-8 text-white/90">{{ __('site.delivery.intro') }}</p>
     </div>
 </section>
 
@@ -57,13 +66,24 @@
         <div class="grid gap-5 lg:grid-cols-3">
             @foreach ($vehicles as $vehicle)
             <article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div class="flex min-h-44 items-center justify-center bg-gradient-to-br from-bla-50 to-slate-100 p-5">
+                @php
+                    $vehicleName = strtolower($vehicle->name);
+                    $vehicleImage = str_contains($vehicleName, 'motor') || str_contains($vehicleName, 'bike') ? 'motorbike'
+                        : (str_contains($vehicleName, 'pick') ? 'pickup'
+                        : (str_contains($vehicleName, 'truck') ? 'truck'
+                        : ['motorbike', 'pickup', 'truck'][min($loop->index, 2)]));
+                @endphp
+                <div class="bg-gradient-to-br from-bla-50 to-slate-100">
                     @if ($vehicle->image_path)
-                    <img src="{{ asset('storage/' . $vehicle->image_path) }}" alt="{{ $vehicle->name }}" class="h-36 w-full object-contain">
-                    @else
-                    <div class="grid h-28 w-28 place-items-center rounded-full bg-white text-5xl text-bla-600 shadow-sm" aria-hidden="true">
-                        <i class="{{ $loop->first ? 'fa-solid fa-motorcycle' : ($loop->last ? 'fa-solid fa-truck' : 'fa-solid fa-truck-pickup') }}"></i>
+                    <div class="flex min-h-44 items-center justify-center p-5">
+                        <img src="{{ asset('storage/' . $vehicle->image_path) }}" alt="{{ $vehicle->name }}" class="h-36 w-full object-contain" loading="lazy" decoding="async">
                     </div>
+                    @else
+                    <img src="{{ asset('images/delivery/vehicle-' . $vehicleImage . '-800.webp') }}"
+                         srcset="{{ asset('images/delivery/vehicle-' . $vehicleImage . '-480.webp') }} 480w, {{ asset('images/delivery/vehicle-' . $vehicleImage . '-800.webp') }} 800w"
+                         sizes="(min-width: 1024px) 440px, (min-width: 640px) 50vw, 100vw"
+                         alt="{{ $vehicle->name }}" width="800" height="533"
+                         class="block aspect-[3/2] w-full object-cover mix-blend-multiply" loading="lazy" decoding="async">
                     @endif
                 </div>
                 <div class="p-5 md:p-6">

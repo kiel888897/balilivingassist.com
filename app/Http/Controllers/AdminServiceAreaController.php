@@ -94,7 +94,7 @@ class AdminServiceAreaController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'name_id' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['required', 'integer', 'min:0', 'max:65535'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_image' => ['sometimes', 'boolean'],
             'is_active' => ['required', 'boolean'],
         ]);

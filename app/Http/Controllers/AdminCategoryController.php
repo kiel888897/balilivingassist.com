@@ -180,7 +180,7 @@ class AdminCategoryController extends Controller
             'type' => ['sometimes', Rule::in([$type])],
             'description' => ['nullable', 'string'],
             'is_active' => ['required', 'boolean'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_image' => ['sometimes', 'boolean'],
         ]);
     }

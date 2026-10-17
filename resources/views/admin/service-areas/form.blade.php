@@ -45,7 +45,7 @@
             </label>
             @endif
             <input id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp">
-            <span class="muted">JPG, PNG, or WebP up to 2 MB. Shown behind the area card on the home page.</span>
+            <span class="muted">JPG, PNG, or WebP up to 5 MB. Shown behind the area card on the home page.</span>
             @error('image') <div class="field-error">{{ $message }}</div> @enderror
         </div>
 

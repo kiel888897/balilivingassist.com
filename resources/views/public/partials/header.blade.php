@@ -32,9 +32,15 @@
             </a>
         </div>
 
-        <button type="button" class="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 text-bla-800 lg:hidden" data-menu-toggle data-open-label="{{ __('site.nav.open_menu') }}" data-close-label="{{ __('site.nav.close_menu') }}" aria-expanded="false" aria-controls="mobile-navigation" aria-label="{{ __('site.nav.open_menu') }}">
+        <div class="ml-auto flex items-center gap-2 lg:hidden">
+        <div class="flex items-center rounded-lg border border-slate-200 p-1 text-xs font-bold" aria-label="{{ __('site.nav.language') }}">
+            <a class="rounded-md px-2 py-1.5 {{ app()->getLocale() === 'en' ? 'bg-bla-600 text-white' : 'text-slate-500 hover:bg-slate-100' }}" href="{{ route('language.switch', ['locale' => 'en', 'next' => request()->getRequestUri()]) }}" lang="en">EN</a>
+            <a class="rounded-md px-2 py-1.5 {{ app()->getLocale() === 'id' ? 'bg-bla-600 text-white' : 'text-slate-500 hover:bg-slate-100' }}" href="{{ route('language.switch', ['locale' => 'id', 'next' => request()->getRequestUri()]) }}" lang="id">ID</a>
+        </div>
+        <button type="button" class="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 text-bla-800" data-menu-toggle data-open-label="{{ __('site.nav.open_menu') }}" data-close-label="{{ __('site.nav.close_menu') }}" aria-expanded="false" aria-controls="mobile-navigation" aria-label="{{ __('site.nav.open_menu') }}">
             <i class="fa-solid fa-bars" data-menu-icon aria-hidden="true"></i>
         </button>
+        </div>
     </div>
 
     <div id="mobile-navigation" class="hidden border-t border-slate-100 bg-white px-4 pb-5 pt-3 lg:hidden" data-menu-panel>
@@ -46,10 +52,6 @@
             <a class="rounded-lg px-3 py-3 font-semibold text-slate-700 hover:bg-bla-50" href="{{ route('portfolio') }}"><i class="fa-solid fa-images mr-3 w-5 text-bla-600" aria-hidden="true"></i>{{ __('site.nav.portfolio') }}</a>
             <a class="rounded-lg px-3 py-3 font-semibold text-slate-700 hover:bg-bla-50" href="{{ route('contact') }}"><i class="fa-solid fa-envelope mr-3 w-5 text-bla-600" aria-hidden="true"></i>{{ __('site.nav.contact') }}</a>
             <div class="mt-2 flex items-center justify-between border-t border-slate-100 pt-4">
-                <div class="flex gap-2">
-                    <a class="rounded-md border px-3 py-2 text-sm font-bold {{ app()->getLocale() === 'en' ? 'border-bla-600 text-bla-700' : 'border-slate-200 text-slate-500' }}" href="{{ route('language.switch', ['locale' => 'en', 'next' => request()->getRequestUri()]) }}">EN</a>
-                    <a class="rounded-md border px-3 py-2 text-sm font-bold {{ app()->getLocale() === 'id' ? 'border-bla-600 text-bla-700' : 'border-slate-200 text-slate-500' }}" href="{{ route('language.switch', ['locale' => 'id', 'next' => request()->getRequestUri()]) }}">ID</a>
-                </div>
                 <div class="flex items-center gap-5">
                     @if (Auth::check() && Auth::user()->hasRole('customer'))
                     <a href="{{ route('customer.account') }}" class="font-semibold text-bla-700">{{ __('site.nav.account') }}</a>
