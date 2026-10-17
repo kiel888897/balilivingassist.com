@@ -12,9 +12,4 @@ return [
         'facebook' => env('BLA_FACEBOOK_URL', 'https://www.facebook.com/share/1M2ia8tVgB/?mibextid=wwXIfr'),
         'whatsapp' => env('BLA_WHATSAPP_URL', 'https://wa.me/6285173323293'),
     ],
-    'service_areas' => [
-        'renovation_building',
-        'service_maintenance',
-        'procurement_supply',
-    ],
 ];

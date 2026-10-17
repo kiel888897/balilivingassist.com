@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminProductDetailController;
 use App\Http\Controllers\AdminPortfolioController;
 use App\Http\Controllers\AdminQuotationController;
+use App\Http\Controllers\AdminServiceAreaController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\CartController;
@@ -125,6 +126,12 @@ Route::middleware('locale')->group(function () {
                 Route::get('/services/{service}/edit', [AdminServiceController::class, 'edit'])->name('admin.services.edit');
                 Route::put('/services/{service}', [AdminServiceController::class, 'update'])->name('admin.services.update');
                 Route::delete('/services/{service}', [AdminServiceController::class, 'destroy'])->name('admin.services.destroy');
+                Route::get('/service-areas', [AdminServiceAreaController::class, 'index'])->name('admin.service-areas');
+                Route::get('/service-areas/create', [AdminServiceAreaController::class, 'create'])->name('admin.service-areas.create');
+                Route::post('/service-areas', [AdminServiceAreaController::class, 'store'])->name('admin.service-areas.store');
+                Route::get('/service-areas/{serviceArea}/edit', [AdminServiceAreaController::class, 'edit'])->name('admin.service-areas.edit');
+                Route::put('/service-areas/{serviceArea}', [AdminServiceAreaController::class, 'update'])->name('admin.service-areas.update');
+                Route::delete('/service-areas/{serviceArea}', [AdminServiceAreaController::class, 'destroy'])->name('admin.service-areas.destroy');
             });
             Route::middleware('permission:delivery.manage')->group(function () {
                 Route::get('/delivery', [AdminDeliveryController::class, 'index'])->name('admin.delivery');

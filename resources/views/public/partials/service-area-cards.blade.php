@@ -1,7 +1,9 @@
 <div class="grid items-stretch gap-5 md:grid-cols-2 xl:grid-cols-3">
-    @foreach (__('site.services.areas') as $areaKey => $areaName)
+    @foreach (\App\Models\ServiceArea::active()->ordered()->get() as $area)
+    @php($areaKey = $area->key)
+    @php($areaName = $area->label)
     @php($areaServices = $serviceGroups->get($areaKey, collect()))
-    @php($bgKey = !empty($withImages) ? $areaKey . '_bg' : null)
+    @php($bgKey = !empty($withImages) && file_exists(public_path("images/home/{$areaKey}_bg-640.webp")) ? $areaKey . '_bg' : null)
     <article class="{{ $bgKey ? 'relative isolate overflow-hidden ' : '' }}flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8">
         @if ($bgKey)
         @include('public.partials.home-img', ['key' => $bgKey, 'widths' => [640, 1024], 'sizes' => '(min-width: 1280px) 440px, (min-width: 768px) 50vw, 100vw', 'class' => 'absolute inset-0 -z-20 h-full w-full object-cover', 'width' => 1024, 'height' => 683])

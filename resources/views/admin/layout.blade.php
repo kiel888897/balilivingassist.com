@@ -170,6 +170,85 @@
             color: white;
         }
 
+        .nav-group-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 11px 12px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: #c4d5d2;
+            font: inherit;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .nav-group-toggle i:first-child {
+            flex: 0 0 20px;
+        }
+
+        .nav-group-toggle .nav-text {
+            flex: 1;
+        }
+
+        .nav-group-toggle:hover,
+        .nav-group.is-open > .nav-group-toggle {
+            background: rgba(255, 255, 255, .08);
+            color: white;
+        }
+
+        .nav-group-toggle:focus-visible {
+            outline: 2px solid rgba(255, 255, 255, .6);
+            outline-offset: 2px;
+        }
+
+        .nav-caret {
+            font-size: 11px;
+            transition: transform .15s;
+        }
+
+        .nav-group.is-open .nav-caret {
+            transform: rotate(180deg);
+        }
+
+        .nav-sub {
+            display: none;
+            gap: 3px;
+            margin: 4px 0 4px 20px;
+            padding-left: 10px;
+            border-left: 1px solid rgba(255, 255, 255, .18);
+        }
+
+        .nav-group.is-open .nav-sub {
+            display: grid;
+        }
+
+        .nav-sub a {
+            padding: 9px 12px;
+            font-size: 14px;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #f97316;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .nav-group.is-open .nav-badge-dot {
+            display: none;
+        }
+
+        .nav-badge-dot {
+            margin-left: 0;
+        }
+
         .sidebar-bottom {
             margin-top: auto;
             border-top: 1px solid rgba(255, 255, 255, .16);
@@ -934,6 +1013,22 @@
             display: none;
         }
 
+        .is-sidebar-collapsed .nav-group-toggle,
+        .is-sidebar-collapsed .nav-badge {
+            display: none;
+        }
+
+        .is-sidebar-collapsed .nav-sub {
+            display: grid;
+            margin: 0;
+            padding: 0;
+            border-left: 0;
+        }
+
+        .is-sidebar-collapsed .nav-sub a {
+            padding: 11px 8px;
+        }
+
         .is-sidebar-collapsed .side-nav a,
         .is-sidebar-collapsed .logout-button {
             justify-content: center;
@@ -1002,6 +1097,18 @@
                 display: flex;
                 overflow-x: auto;
                 gap: 5px;
+            }
+
+            .nav-group,
+            .nav-sub,
+            .nav-group.is-open .nav-sub,
+            .is-sidebar-collapsed .nav-sub {
+                display: contents;
+            }
+
+            .nav-group-toggle,
+            .is-sidebar-collapsed .nav-group-toggle {
+                display: none;
             }
 
             .side-nav a {
@@ -1123,35 +1230,50 @@
             <div class="nav-label">Workspace</div>
             <nav class="side-nav" id="admin-sidebar-navigation" aria-label="Admin navigation">
                 <a class="{{ request()->routeIs('admin') ? 'active' : '' }}" href="{{ route('admin') }}" aria-label="Dashboard" title="Dashboard"><i class="fa-solid fa-gauge-high w-5 text-center" aria-hidden="true"></i><span class="nav-text">Dashboard</span></a>
-                @if (Auth::user()->hasPermissionTo('catalog.view'))
-                <a class="{{ request()->routeIs('admin.products*') ? 'active' : '' }}" href="{{ route('admin.products') }}" aria-label="Products" title="Products"><i class="fa-solid fa-boxes-stacked w-5 text-center" aria-hidden="true"></i><span class="nav-text">Products</span></a>
+                @php($navUser = Auth::user())
+                @php($newQuotationCount = $navUser->hasPermissionTo('quotes.manage') ? \App\Models\Quotation::where('status', 'new')->count() : 0)
+                @php($navGroups = [
+                    ['label' => 'Products', 'icon' => 'fa-boxes-stacked', 'items' => [
+                        ['label' => 'Product list', 'icon' => 'fa-boxes-stacked', 'route' => 'admin.products', 'match' => 'admin.products*', 'can' => 'catalog.view'],
+                        ['label' => 'Product categories', 'icon' => 'fa-tags', 'route' => 'admin.categories', 'match' => 'admin.categories*', 'can' => 'categories.manage'],
+                        ['label' => 'Rental categories', 'icon' => 'fa-truck-ramp-box', 'route' => 'admin.rental-categories', 'match' => 'admin.rental-categories*', 'can' => 'rental.manage'],
+                    ]],
+                    ['label' => 'Services', 'icon' => 'fa-screwdriver-wrench', 'items' => [
+                        ['label' => 'Service list', 'icon' => 'fa-screwdriver-wrench', 'route' => 'admin.services', 'match' => 'admin.services*', 'can' => 'services.manage'],
+                        ['label' => 'Service areas', 'icon' => 'fa-layer-group', 'route' => 'admin.service-areas', 'match' => 'admin.service-areas*', 'can' => 'services.manage'],
+                    ]],
+                    ['label' => 'Orders', 'icon' => 'fa-file-invoice', 'badge' => $newQuotationCount, 'items' => [
+                        ['label' => 'Quotations', 'icon' => 'fa-file-invoice', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'badge' => $newQuotationCount],
+                        ['label' => 'Delivery', 'icon' => 'fa-truck-fast', 'route' => 'admin.delivery', 'match' => 'admin.delivery*', 'can' => 'delivery.manage'],
+                    ]],
+                ])
+                @foreach ($navGroups as $group)
+                @php($items = array_values(array_filter($group['items'], fn ($item) => $navUser->hasPermissionTo($item['can']))))
+                @if (count($items))
+                @php($groupOpen = collect($items)->contains(fn ($item) => request()->routeIs($item['match'])))
+                <div class="nav-group {{ $groupOpen ? 'is-open' : '' }}" data-nav-group>
+                    <button class="nav-group-toggle" type="button" aria-expanded="{{ $groupOpen ? 'true' : 'false' }}">
+                        <i class="fa-solid {{ $group['icon'] }} w-5 text-center" aria-hidden="true"></i>
+                        <span class="nav-text">{{ $group['label'] }}</span>
+                        @if (!empty($group['badge']))<span class="nav-badge nav-badge-dot">{{ $group['badge'] }}</span>@endif
+                        <i class="fa-solid fa-chevron-down nav-caret" aria-hidden="true"></i>
+                    </button>
+                    <div class="nav-sub">
+                        @foreach ($items as $item)
+                        <a class="{{ request()->routeIs($item['match']) ? 'active' : '' }}" href="{{ route($item['route']) }}" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
+                            <i class="fa-solid {{ $item['icon'] }} w-5 text-center" aria-hidden="true"></i>
+                            <span class="nav-text">{{ $item['label'] }}</span>
+                            @if (!empty($item['badge']))<span class="nav-badge">{{ $item['badge'] }}</span>@endif
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
                 @endif
-                @if (Auth::user()->hasPermissionTo('categories.manage'))
-                <a class="{{ request()->routeIs('admin.categories*') ? 'active' : '' }}" href="{{ route('admin.categories') }}" aria-label="Categories" title="Categories"><i class="fa-solid fa-tags w-5 text-center" aria-hidden="true"></i><span class="nav-text">Categories</span></a>
-                @endif
-                @if (Auth::user()->hasPermissionTo('services.manage'))
-                <a class="{{ request()->routeIs('admin.services*') ? 'active' : '' }}" href="{{ route('admin.services') }}" aria-label="Services" title="Services"><i class="fa-solid fa-screwdriver-wrench w-5 text-center" aria-hidden="true"></i><span class="nav-text">Services</span></a>
-                @endif
-                @if (Auth::user()->hasPermissionTo('projects.manage'))
+                @endforeach
+                @if ($navUser->hasPermissionTo('projects.manage'))
                 <a class="{{ request()->routeIs('admin.portfolio*') ? 'active' : '' }}" href="{{ route('admin.portfolio') }}" aria-label="Portfolio" title="Portfolio"><i class="fa-solid fa-images w-5 text-center" aria-hidden="true"></i><span class="nav-text">Portfolio</span></a>
                 @endif
-                @if (Auth::user()->hasPermissionTo('rental.manage'))
-                <a class="{{ request()->routeIs('admin.rental-categories*') ? 'active' : '' }}" href="{{ route('admin.rental-categories') }}" aria-label="Rental categories" title="Rental categories"><i class="fa-solid fa-truck-ramp-box w-5 text-center" aria-hidden="true"></i><span class="nav-text">Rental categories</span></a>
-                @endif
-                @if (Auth::user()->hasPermissionTo('delivery.manage'))
-                <a class="{{ request()->routeIs('admin.delivery*') ? 'active' : '' }}" href="{{ route('admin.delivery') }}" aria-label="Delivery" title="Delivery"><i class="fa-solid fa-truck-fast w-5 text-center" aria-hidden="true"></i><span class="nav-text">Delivery</span></a>
-                @endif
-                @if (Auth::user()->hasPermissionTo('quotes.manage'))
-                <a class="{{ request()->routeIs('admin.quotations*') ? 'active' : '' }}" href="{{ route('admin.quotations') }}" aria-label="Quotations" title="Quotations">
-                    <i class="fa-solid fa-file-invoice w-5 text-center" aria-hidden="true"></i>
-                    <span class="nav-text">Quotations</span>
-                    @php($newQuotationCount = \App\Models\Quotation::where('status', 'new')->count())
-                    @if ($newQuotationCount > 0)
-                    <span class="ml-auto rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $newQuotationCount }}</span>
-                    @endif
-                </a>
-                @endif
-                @if (Auth::user()->hasPermissionTo('users.manage'))
+                @if ($navUser->hasPermissionTo('users.manage'))
                 <a class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}" href="{{ route('admin.users') }}" aria-label="Users" title="Users"><i class="fa-solid fa-users w-5 text-center" aria-hidden="true"></i><span class="nav-text">Users</span></a>
                 @endif
             </nav>
@@ -1194,6 +1316,15 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/trix@2.1.15/dist/trix.umd.min.js"></script>
     @stack('scripts')
+    <script>
+        document.querySelectorAll('[data-nav-group]').forEach(function (group) {
+            var button = group.querySelector('.nav-group-toggle');
+            button.addEventListener('click', function () {
+                var open = group.classList.toggle('is-open');
+                button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        });
+    </script>
     <script>
         (function () {
             document.querySelectorAll('table[data-searchable]').forEach(function (table) {

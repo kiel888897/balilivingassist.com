@@ -26,7 +26,7 @@
             <label for="service_area">Service area</label>
             <select id="service_area" name="service_area" required>
                 @foreach ($serviceAreas as $serviceArea)
-                <option value="{{ $serviceArea }}" {{ old('service_area', $service->service_area ?: 'service_maintenance') === $serviceArea ? 'selected' : '' }}>{{ __('site.services.areas.' . $serviceArea) }}</option>
+                <option value="{{ $serviceArea->key }}" {{ old('service_area', $service->service_area ?: $serviceAreas->first()?->key) === $serviceArea->key ? 'selected' : '' }}>{{ $serviceArea->label }}{{ $serviceArea->is_active ? '' : ' (inactive)' }}</option>
                 @endforeach
             </select>
             @error('service_area') <div class="field-error">{{ $message }}</div> @enderror

@@ -21,6 +21,7 @@ use App\Models\Role;
 use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\BlaSeeder;
+use App\Models\ServiceArea;
 use Database\Seeders\PortfolioSamplesSeeder;
 use Database\Seeders\RentalSamplesSeeder;
 use Database\Seeders\SampleProductsSeeder;
@@ -1367,6 +1368,57 @@ class BlaPagesTest extends TestCase
             $this->delete(route('admin.services.destroy', $service))
                 ->assertRedirect(route('admin.services'));
             $this->assertDatabaseMissing('services', ['id' => $service->id]);
+        } finally {
+            DB::rollBack();
+        }
+    }
+
+    public function test_service_areas_are_manageable_and_drive_service_grouping(): void
+    {
+        DB::beginTransaction();
+
+        try {
+            $manager = $this->createUser('service-area-manager-test@example.test', 'project_manager');
+            $this->actingAs($manager)
+                ->get(route('admin.service-areas'))
+                ->assertOk()
+                ->assertSee('Renovation & Building');
+
+            $this->post(route('admin.service-areas.store'), [
+                'name' => 'Landscape & Garden',
+                'name_id' => 'Taman & Lanskap',
+                'sort_order' => 9,
+                'is_active' => '1',
+            ])->assertSessionHasNoErrors()
+                ->assertRedirect(route('admin.service-areas'));
+
+            $area = ServiceArea::where('key', 'landscape_garden')->firstOrFail();
+
+            $this->post(route('admin.services.store'), [
+                'service_area' => $area->key,
+                'name' => 'Garden Area Test Service',
+                'is_active' => '1',
+            ])->assertSessionHasNoErrors();
+
+            $this->get(route('services'))
+                ->assertOk()
+                ->assertSee('Landscape &amp; Garden', false)
+                ->assertSee('Garden Area Test Service');
+
+            $this->post(route('admin.services.store'), [
+                'service_area' => 'unknown_area',
+                'name' => 'Invalid Area Service',
+                'is_active' => '1',
+            ])->assertSessionHasErrors('service_area');
+
+            $this->delete(route('admin.service-areas.destroy', $area))
+                ->assertSessionHas('error');
+            $this->assertDatabaseHas('service_areas', ['id' => $area->id]);
+
+            Service::where('slug', 'garden-area-test-service')->delete();
+            $this->delete(route('admin.service-areas.destroy', $area))
+                ->assertSessionHas('status');
+            $this->assertDatabaseMissing('service_areas', ['id' => $area->id]);
         } finally {
             DB::rollBack();
         }

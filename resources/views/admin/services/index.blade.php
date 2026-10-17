@@ -31,7 +31,7 @@
                         <strong>{{ $service->name }}</strong>
                         <span class="subtext">{{ $service->slug }}</span>
                     </td>
-                    <td>{{ __('site.services.areas.' . $service->service_area) }}</td>
+                    <td>{{ $service->area?->label ?? $service->service_area }}</td>
                     <td><span class="badge">{{ $service->is_active ? 'ACTIVE' : 'INACTIVE' }}</span></td>
                     <td>
                         <div class="actions">

@@ -13,7 +13,7 @@
             <img src="{{ asset('storage/' . $service->image_path) }}" alt="{{ $service->name }}" class="max-h-[460px] w-full object-cover" width="1200" height="720">
             @endif
             <div class="p-6 md:p-12">
-                <p class="text-xs font-extrabold uppercase tracking-[.16em] text-bla-600">{{ __('site.services.areas.' . $service->service_area) }}</p>
+                <p class="text-xs font-extrabold uppercase tracking-[.16em] text-bla-600">{{ $service->area?->label }}</p>
                 <h1 class="mt-3 font-display text-4xl font-extrabold text-bla-900 md:text-5xl">{{ $service->name }}</h1>
                 @if ($service->description)
                 <div class="public-rich-text mt-6">{!! $service->sanitized_description !!}</div>

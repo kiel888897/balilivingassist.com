@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Models\ServiceArea;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ class AdminServiceController extends Controller
     public function index()
     {
         return view('admin.services.index', [
-            'services' => Service::orderBy('service_area')->orderBy('id')->get(),
+            'services' => Service::with('area')->orderBy('service_area')->orderBy('id')->get(),
         ]);
     }
 
@@ -62,7 +63,7 @@ class AdminServiceController extends Controller
     {
         return view('admin.services.form', [
             'service' => $service,
-            'serviceAreas' => config('bla.service_areas'),
+            'serviceAreas' => ServiceArea::ordered()->get(),
             'formAction' => $formAction,
             'formMethod' => $formMethod,
         ]);
@@ -71,7 +72,7 @@ class AdminServiceController extends Controller
     private function validateService(Request $request): array
     {
         $data = $request->validate([
-            'service_area' => ['required', Rule::in(config('bla.service_areas'))],
+            'service_area' => ['required', Rule::exists('service_areas', 'key')],
             'name' => ['required', 'string', 'max:255'],
             'is_active' => ['required', 'boolean'],
         ]);
