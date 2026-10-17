@@ -1394,6 +1394,18 @@ class BlaPagesTest extends TestCase
 
             $area = ServiceArea::where('key', 'landscape_garden')->firstOrFail();
 
+            Storage::fake('public');
+            $this->put(route('admin.service-areas.update', $area), [
+                'name' => 'Landscape & Garden',
+                'sort_order' => 9,
+                'is_active' => '1',
+                'image' => UploadedFile::fake()->createWithContent('bg.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')),
+            ])->assertSessionHasNoErrors();
+            $area->refresh();
+            $this->assertNotNull($area->image_path);
+            Storage::disk('public')->assertExists($area->image_path);
+            $this->get(route('home'))->assertOk();
+
             $this->post(route('admin.services.store'), [
                 'service_area' => $area->key,
                 'name' => 'Garden Area Test Service',

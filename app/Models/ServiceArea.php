@@ -12,6 +12,7 @@ class ServiceArea extends Model
         'key',
         'name',
         'name_id',
+        'image_path',
         'sort_order',
         'is_active',
     ];

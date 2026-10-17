@@ -3,9 +3,13 @@
     @php($areaKey = $area->key)
     @php($areaName = $area->label)
     @php($areaServices = $serviceGroups->get($areaKey, collect()))
-    @php($bgKey = !empty($withImages) && file_exists(public_path("images/home/{$areaKey}_bg-640.webp")) ? $areaKey . '_bg' : null)
-    <article class="{{ $bgKey ? 'relative isolate overflow-hidden ' : '' }}flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8">
-        @if ($bgKey)
+    @php($bgKey = !empty($withImages) && !$area->image_path && file_exists(public_path("images/home/{$areaKey}_bg-640.webp")) ? $areaKey . '_bg' : null)
+    @php($hasBg = !empty($withImages) && ($area->image_path || $bgKey))
+    <article class="{{ $hasBg ? 'relative isolate overflow-hidden ' : '' }}flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8">
+        @if (!empty($withImages) && $area->image_path)
+        <img src="{{ asset('storage/' . $area->image_path) }}" alt="" class="absolute inset-0 -z-20 h-full w-full object-cover" width="1024" height="683" loading="lazy" decoding="async">
+        <span class="absolute inset-0 -z-10 bg-white/90" aria-hidden="true"></span>
+        @elseif ($bgKey)
         @include('public.partials.home-img', ['key' => $bgKey, 'widths' => [640, 1024], 'sizes' => '(min-width: 1280px) 440px, (min-width: 768px) 50vw, 100vw', 'class' => 'absolute inset-0 -z-20 h-full w-full object-cover', 'width' => 1024, 'height' => 683])
         <span class="absolute inset-0 -z-10 bg-white/90" aria-hidden="true"></span>
         @endif

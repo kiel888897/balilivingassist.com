@@ -9,7 +9,7 @@
 @endsection
 
 @section('content')
-<form class="panel form-panel" action="{{ $formAction }}" method="POST">
+<form class="panel form-panel" action="{{ $formAction }}" method="POST" enctype="multipart/form-data">
     @csrf
     @if ($formMethod !== 'POST')
     @method($formMethod)
@@ -32,6 +32,21 @@
             <label for="sort_order">Display order</label>
             <input id="sort_order" name="sort_order" type="number" min="0" max="65535" value="{{ old('sort_order', $area->sort_order) }}" required>
             @error('sort_order') <div class="field-error">{{ $message }}</div> @enderror
+        </div>
+
+        <div class="field field-wide">
+            <label for="image">Background image (optional)</label>
+            @if ($area->image_path)
+            <img src="{{ asset('storage/' . $area->image_path) }}" alt="{{ $area->name }}" style="width: 180px; height: 110px; object-fit: cover; border-radius: 6px;">
+            <label class="check">
+                <input type="hidden" name="remove_image" value="0">
+                <input type="checkbox" name="remove_image" value="1">
+                Remove current image
+            </label>
+            @endif
+            <input id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp">
+            <span class="muted">JPG, PNG, or WebP up to 2 MB. Shown behind the area card on the home page.</span>
+            @error('image') <div class="field-error">{{ $message }}</div> @enderror
         </div>
 
         <div class="field field-wide">
