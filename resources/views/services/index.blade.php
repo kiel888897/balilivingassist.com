@@ -14,7 +14,7 @@
 
 <section class="py-12 pb-16 md:py-16 md:pb-20">
     <div class="mx-auto w-[min(1400px,calc(100%-32px))]">
-        @include('public.partials.service-area-cards', ['serviceGroups' => $serviceGroups])
+        @include('public.partials.service-area-cards', ['serviceGroups' => $serviceGroups, 'withImages' => true])
     </div>
 </section>
 @endsection
