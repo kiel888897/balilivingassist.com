@@ -110,7 +110,9 @@
             <form action="{{ route('admin.delivery.vehicles.destroy', $vehicle) }}" method="POST" onsubmit="return confirm('Delete this vehicle and all its rates?')">
                 @csrf
                 @method('DELETE')
-                <button class="btn btn-danger" type="submit">Delete vehicle</button>
+                <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete vehicle: {{ $vehicle->name }}" title="Delete vehicle">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
             </form>
         </div>
 
@@ -183,7 +185,9 @@
                     <form action="{{ route('admin.delivery.rates.destroy', [$vehicle, $rate]) }}" method="POST" onsubmit="return confirm('Delete this rate?')">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-danger" type="submit">Delete rate</button>
+                        <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete rate for {{ $vehicle->name }}" title="Delete rate">
+                            <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                        </button>
                     </form>
                 </div>
                 @empty
@@ -283,7 +287,9 @@
             <form action="{{ route('admin.delivery.coverage-areas.destroy', $area) }}" method="POST" onsubmit="return confirm('Delete this map coverage origin?')">
                 @csrf
                 @method('DELETE')
-                <button class="btn btn-danger" type="submit">Delete origin</button>
+                <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete map coverage origin: {{ $area->name }}" title="Delete origin">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
             </form>
         </div>
         @empty

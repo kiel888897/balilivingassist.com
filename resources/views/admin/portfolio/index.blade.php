@@ -44,11 +44,15 @@
                     <td>{{ $project->sort_order }}</td>
                     <td>
                         <div class="actions">
-                            <a class="btn btn-light" href="{{ route('admin.portfolio.edit', $project) }}">Edit</a>
+                            <a class="btn btn-light btn-icon" href="{{ route('admin.portfolio.edit', $project) }}" aria-label="Edit portfolio project: {{ $project->title }}" title="Edit portfolio project">
+                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                            </a>
                             <form action="{{ route('admin.portfolio.destroy', $project) }}" method="POST" onsubmit="return confirm('Delete this portfolio project and its photos?')">
                                 @csrf
                                 @method('DELETE')
-                                <button class="btn btn-danger" type="submit">Delete</button>
+                                <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete portfolio project: {{ $project->title }}" title="Delete portfolio project">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                </button>
                             </form>
                         </div>
                     </td>

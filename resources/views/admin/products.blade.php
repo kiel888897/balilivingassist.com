@@ -49,11 +49,15 @@
                     @if (Auth::user()->hasPermissionTo('catalog.manage'))
                     <td>
                         <div class="actions">
-                            <a class="btn btn-light" href="{{ route('admin.products.edit', $product) }}">Edit</a>
+                            <a class="btn btn-light btn-icon" href="{{ route('admin.products.edit', $product) }}" aria-label="Edit product: {{ $product->name }}" title="Edit product">
+                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                            </a>
                             <form action="{{ route('admin.products.destroy', $product) }}" method="POST" onsubmit="return confirm('Delete this product?')">
                                 @csrf
                                 @method('DELETE')
-                                <button class="btn btn-danger" type="submit">Delete</button>
+                                <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete product: {{ $product->name }}" title="Delete product">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                </button>
                             </form>
                         </div>
                     </td>

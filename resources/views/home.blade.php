@@ -184,7 +184,7 @@
             <h2 class="font-display text-2xl font-extrabold">{{ __('site.home.assistance') }}</h2>
             <p class="mt-2 text-teal-50/70">{{ __('site.contact.intro') }}</p>
         </div>
-        <a href="{{ route('contact') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-bla-800 hover:bg-teal-50">{{ __('site.footer.contact') }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        <a href="{{ route('contact') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-bla-900 hover:bg-teal-50">{{ __('site.footer.contact') }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </div>
 </section>
 @endsection

@@ -441,6 +441,20 @@
             background: #911d14;
         }
 
+        .btn-icon {
+            width: 36px;
+            min-width: 36px;
+            height: 36px;
+            min-height: 36px;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .btn-icon:focus-visible {
+            outline: 3px solid rgba(8, 126, 121, .25);
+            outline-offset: 2px;
+        }
+
         .actions {
             display: flex;
             align-items: center;

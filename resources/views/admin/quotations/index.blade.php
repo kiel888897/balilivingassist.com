@@ -54,7 +54,11 @@
                     <td>Rp {{ number_format($quotation->total, 0, ',', '.') }}</td>
                     <td><span class="badge">{{ strtoupper(str_replace('_', ' ', $quotation->status)) }}</span></td>
                     <td>{{ $quotation->created_at->format('d M Y H:i') }}</td>
-                    <td><a class="btn btn-light" href="{{ route('admin.quotations.edit', $quotation) }}">Review / edit</a></td>
+                    <td>
+                        <a class="btn btn-light btn-icon" href="{{ route('admin.quotations.edit', $quotation) }}" aria-label="Review quotation: {{ $quotation->quote_number }}" title="Review quotation">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                        </a>
+                    </td>
                 </tr>
                 @empty
                 <tr><td colspan="7" class="muted">No customer quotation requests have been submitted.</td></tr>

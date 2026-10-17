@@ -40,12 +40,16 @@
                     <td>{{ $user->created_at->format('d M Y') }}</td>
                     <td>
                         <div class="actions">
-                            <a class="btn btn-light" href="{{ route('admin.users.edit', $user) }}">Edit</a>
+                            <a class="btn btn-light btn-icon" href="{{ route('admin.users.edit', $user) }}" aria-label="Edit user: {{ $user->name }}" title="Edit user">
+                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                            </a>
                             @if ($user->id !== Auth::id())
                             <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Delete this user account?')">
                                 @csrf
                                 @method('DELETE')
-                                <button class="btn btn-danger" type="submit">Delete</button>
+                                <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete user: {{ $user->name }}" title="Delete user">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                </button>
                             </form>
                             @endif
                         </div>

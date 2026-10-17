@@ -41,12 +41,16 @@
                     <td><span class="badge">{{ $category->is_active ? 'ACTIVE' : 'INACTIVE' }}</span></td>
                     <td>
                         <div class="actions">
-                            <a class="btn btn-light" href="{{ route($categoryRoute . '.edit', $category) }}">Edit</a>
+                            <a class="btn btn-light btn-icon" href="{{ route($categoryRoute . '.edit', $category) }}" aria-label="Edit category: {{ $category->name }}" title="Edit category">
+                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                            </a>
                             @if ($category->products_count === 0)
                             <form action="{{ route($categoryRoute . '.destroy', $category) }}" method="POST" onsubmit="return confirm('Delete this category?')">
                                 @csrf
                                 @method('DELETE')
-                                <button class="btn btn-danger" type="submit">Delete</button>
+                                <button class="btn btn-danger btn-icon" type="submit" aria-label="Delete category: {{ $category->name }}" title="Delete category">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                </button>
                             </form>
                             @else
                             <span class="muted" title="Move or remove its items first">In use</span>
