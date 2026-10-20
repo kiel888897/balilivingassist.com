@@ -48,6 +48,14 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         background: #e9f1f2;
         color: #145866;
     }
+        .quotation-total-block {
+            width: 100%;
+            margin-top: 22px;
+            margin-left: auto;
+        }
+        @media (min-width: 640px) {
+            .quotation-total-block { width: 58%; }
+        }
     .quotation-terms-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -151,7 +159,8 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
             </table>
         </div>
 
-        <div class="ml-auto mt-5 grid max-w-sm gap-2 text-sm">
+        <div class="quotation-total-block">
+        <div class="ml-auto grid max-w-sm gap-2 text-sm">
             <p class="flex justify-between"><span>Subtotal</span><strong>Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</strong></p>
             <p class="flex justify-between"><span>Delivery</span><strong>Rp {{ number_format($quotation->delivery_fee, 0, ',', '.') }}</strong></p>
             <p class="flex justify-between"><span>Discount</span><strong>− Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</strong></p>
@@ -163,6 +172,7 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
                 <strong class="text-xl">Rp {{ number_format($quotation->total, 0, ',', '.') }}</strong>
             </div>
         </section>
+        </div>
 
         <section class="print-avoid-break mt-4">
             <h2 class="font-display text-xs font-extrabold uppercase tracking-wider text-bla-700">Terms &amp; Conditions</h2>
