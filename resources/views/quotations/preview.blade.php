@@ -37,6 +37,38 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         outline: 3px solid #99f6e4;
         outline-offset: 3px;
     }
+    .quotation-grand-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-top: 22px;
+        padding: 8px 12px;
+        border: 1px solid #167985;
+        background: #e9f1f2;
+        color: #145866;
+    }
+    .quotation-terms-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        margin-top: 6px;
+        border: 1px solid #d9e3e5;
+        background: #f4f7f7;
+    }
+    .quotation-terms-grid > div { padding: 6px 9px; }
+    .quotation-payment-box {
+        width: min(100%, 370px);
+        margin-top: 10px;
+        border: 2px solid #167985;
+        padding: 12px 14px;
+        color: #145866;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+    @media (max-width: 640px) {
+        .quotation-terms-grid { grid-template-columns: 1fr; }
+    }
     @media print {
         @page { size: A4; margin: 14mm; }
         body { background: #fff !important; color: #111827 !important; }
@@ -123,36 +155,48 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
             <p class="flex justify-between"><span>Subtotal</span><strong>Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</strong></p>
             <p class="flex justify-between"><span>Delivery</span><strong>Rp {{ number_format($quotation->delivery_fee, 0, ',', '.') }}</strong></p>
             <p class="flex justify-between"><span>Discount</span><strong>− Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</strong></p>
-            <p class="mt-2 flex justify-between border-t border-slate-300 pt-3 text-base"><strong>GRAND TOTAL</strong><strong class="text-lg">Rp {{ number_format($quotation->total, 0, ',', '.') }}</strong></p>
-            <p class="text-right text-xs font-semibold italic text-slate-600">VAT excluded</p>
         </div>
 
-        <section class="print-avoid-break mt-8 border-t border-slate-200 pt-6">
-            <h2 class="font-display text-sm font-extrabold uppercase tracking-wider text-slate-900">Terms &amp; Conditions</h2>
-            <ol class="mt-3 list-decimal space-y-1 pl-5 text-sm leading-6 text-slate-700">
-                <li>Price excludes 11% VAT.</li>
-                <li>Prices are valid for the Java and Bali regions only.</li>
-            </ol>
+        <section class="print-avoid-break mt-5">
+            <div class="quotation-grand-total">
+                <div><strong class="block text-sm uppercase tracking-wide">GRAND TOTAL</strong><span class="block text-xs italic">VAT excluded</span></div>
+                <strong class="text-xl">Rp {{ number_format($quotation->total, 0, ',', '.') }}</strong>
+            </div>
         </section>
 
-        <section class="print-avoid-break mt-6">
-            <h2 class="font-display text-sm font-extrabold uppercase tracking-wider text-slate-900">Terms of Payment</h2>
-            <p class="mt-3 text-sm font-bold text-slate-800">Full Payment in Advance</p>
+        <section class="print-avoid-break mt-4">
+            <h2 class="font-display text-xs font-extrabold uppercase tracking-wider text-bla-700">Terms &amp; Conditions</h2>
+            <div class="quotation-terms-grid text-xs leading-5 text-slate-700">
+                <div>
+                    <ol class="list-decimal space-y-0 pl-5">
+                        <li>Price excludes 11% VAT.</li>
+                        <li>Prices are valid for the Java and Bali regions only.</li>
+                    </ol>
+                </div>
+                <div class="border-l border-slate-200">
+                    <h3 class="text-[10px] font-extrabold uppercase tracking-wide text-slate-500">Terms of Payment</h3>
+                    <p class="mt-1 font-bold text-slate-800">Full Payment in Advance</p>
+                </div>
+            </div>
         </section>
 
-        <section class="print-avoid-break mt-7 text-sm leading-6 text-slate-700">
-            <p class="italic">Prices stated above are subject to change without prior notice.</p>
-            <p class="mt-5">Best regards,</p>
-            <p class="mt-5 font-extrabold text-slate-900">Bali Living Assist</p>
-            <p>+62 851-7332-3293</p>
+        <section class="print-avoid-break mt-2 text-xs italic leading-5 text-slate-500">
+            <p>Prices stated above are subject to change without prior notice.</p>
         </section>
 
-        @if (!$isInvoice && $quotation->status === 'payment_requested' && $quotation->payment_instructions)
-        <section class="print-avoid-break mt-7 rounded-xl bg-slate-50 p-5">
-            <h2 class="font-bold text-slate-900">Payment instructions</h2>
-            <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">{{ $quotation->payment_instructions }}</p>
+        @if (!$isInvoice && $quotation->payment_instructions)
+        <section class="print-avoid-break quotation-payment-box">
+            @foreach (preg_split('/\\r\\n|\\r|\\n/', $quotation->payment_instructions) as $instructionLine)
+            <p>{{ $instructionLine }}</p>
+            @endforeach
         </section>
         @endif
+
+        <section class="print-avoid-break mt-4 text-sm leading-6 text-slate-700">
+            <p>Best regards,</p>
+            <p class="mt-12 font-extrabold text-slate-900">Bali Living Assist</p>
+            <p class="text-xs">+62 851-7332-3293</p>
+        </section>
         @if ($quotation->customer_note)
         <section class="print-avoid-break mt-6 border-t border-slate-200 pt-5">
             <h2 class="font-bold text-slate-900">Customer note</h2>
