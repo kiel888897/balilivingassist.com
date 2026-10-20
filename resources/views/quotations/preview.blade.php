@@ -12,6 +12,31 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
 
 @push('head')
 <style>
+    .quotation-print-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 10px 18px;
+        border: 1px solid #0e6f65;
+        border-radius: 8px;
+        background-color: #0e6f65;
+        color: #fff;
+        font: 700 14px/1.25 "DM Sans", sans-serif;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(15, 23, 42, .18);
+        transition: background-color .15s ease, box-shadow .15s ease;
+    }
+    .quotation-print-button:hover {
+        background-color: #105951;
+        border-color: #105951;
+        color: #fff;
+        box-shadow: 0 4px 9px rgba(15, 23, 42, .22);
+    }
+    .quotation-print-button:focus-visible {
+        outline: 3px solid #99f6e4;
+        outline-offset: 3px;
+    }
     @media print {
         @page { size: A4; margin: 14mm; }
         body { background: #fff !important; color: #111827 !important; }
@@ -32,7 +57,7 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
     <div class="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
         <a href="{{ route('home') }}" class="font-bold text-bla-700">{{ __('site.brand') }}</a>
         <div class="flex flex-wrap gap-2">
-            <button type="button" class="rounded-lg bg-bla-700 px-4 py-2 text-sm font-bold text-white" onclick="window.print()">Print / Save PDF</button>
+            <button type="button" class="quotation-print-button" onclick="window.print()">Print / Save PDF</button>
             @if (!$isInvoice && $quotation->hasPaidInvoice())
             <a class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-800" href="{{ route('quotations.preview.invoice', $quotation->public_token) }}">View paid invoice</a>
             @endif
