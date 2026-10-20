@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminCategoryController;
+use App\Http\Controllers\AdminCustomerController;
 use App\Http\Controllers\AdminDeliveryController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminProductDetailController;
@@ -172,6 +173,12 @@ Route::middleware('locale')->group(function () {
                 Route::delete('/rental-categories/{category}', [AdminCategoryController::class, 'rentalDestroy'])->name('admin.rental-categories.destroy');
             });
             Route::middleware('permission:users.manage')->group(function () {
+                Route::get('/contacts', [AdminCustomerController::class, 'index'])->name('admin.contacts');
+                Route::get('/contacts/create', [AdminCustomerController::class, 'create'])->name('admin.contacts.create');
+                Route::post('/contacts', [AdminCustomerController::class, 'store'])->name('admin.contacts.store');
+                Route::get('/contacts/{user}/edit', [AdminCustomerController::class, 'edit'])->name('admin.contacts.edit');
+                Route::put('/contacts/{user}', [AdminCustomerController::class, 'update'])->name('admin.contacts.update');
+                Route::delete('/contacts/{user}', [AdminCustomerController::class, 'destroy'])->name('admin.contacts.destroy');
                 Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users');
                 Route::get('/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
                 Route::post('/users', [AdminUserController::class, 'store'])->name('admin.users.store');

@@ -59,6 +59,11 @@ class User extends Authenticatable
         return $this->hasMany(Quotation::class);
     }
 
+    public function addresses()
+    {
+        return $this->hasMany(CustomerAddress::class)->orderBy('id');
+    }
+
     public function hasPermissionTo(string $permission): bool
     {
         return $this->roles()

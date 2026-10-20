@@ -1297,6 +1297,7 @@
                 <a class="{{ request()->routeIs('admin.portfolio*') ? 'active' : '' }}" href="{{ route('admin.portfolio') }}" aria-label="Portfolio" title="Portfolio"><i class="fa-solid fa-images w-5 text-center" aria-hidden="true"></i><span class="nav-text">Portfolio</span></a>
                 @endif
                 @if ($navUser->hasPermissionTo('users.manage'))
+                <a class="{{ request()->routeIs('admin.contacts*') ? 'active' : '' }}" href="{{ route('admin.contacts') }}" aria-label="Contacts" title="Contacts"><i class="fa-solid fa-address-book w-5 text-center" aria-hidden="true"></i><span class="nav-text">Contacts</span></a>
                 <a class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}" href="{{ route('admin.users') }}" aria-label="Users" title="Users"><i class="fa-solid fa-users w-5 text-center" aria-hidden="true"></i><span class="nav-text">Users</span></a>
                 @endif
             </nav>
