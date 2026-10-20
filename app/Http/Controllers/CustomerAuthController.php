@@ -72,7 +72,7 @@ class CustomerAuthController extends Controller
             Mail::raw(
                 "A new customer has registered.\n\nName: {$user->name}\nEmail: {$user->email}",
                 function ($message) {
-                    $message->to(config('bla.email'))
+                    $message->to(config('bla.contact.email'))
                         ->subject('New customer registration');
                 }
             );
