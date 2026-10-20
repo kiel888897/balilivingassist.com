@@ -109,6 +109,8 @@ Route::middleware('locale')->group(function () {
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
         Route::get('/account', [CustomerAuthController::class, 'account'])->name('customer.account');
+        Route::get('/account/profile/edit', [CustomerAuthController::class, 'editProfile'])->name('customer.profile.edit');
+        Route::put('/account/profile', [CustomerAuthController::class, 'updateProfile'])->name('customer.profile.update');
         Route::get('/cart', [CartController::class, 'index'])->name('cart');
         Route::post('/cart/items/update', [CartController::class, 'update'])->name('cart.items.update');
         Route::post('/cart/items/remove', [CartController::class, 'destroy'])->name('cart.items.destroy');

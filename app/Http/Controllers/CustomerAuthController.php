@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Throwable;
 
@@ -100,5 +101,41 @@ class CustomerAuthController extends Controller
             'quotationCount' => $user->quotations()->whereNotIn('status', \App\Models\Quotation::ORDER_STATUSES)->count(),
             'orderCount' => $user->quotations()->whereIn('status', \App\Models\Quotation::ORDER_STATUSES)->count(),
         ]);
+    }
+
+    public function editProfile()
+    {
+        $this->ensureCustomer();
+
+        return view('customer.profile-edit', ['user' => Auth::user()]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $this->ensureCustomer();
+        $user = $request->user();
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:32', 'regex:/^[0-9+\\s().-]{7,32}$/'],
+            'password' => ['nullable', 'confirmed', Password::min(6)],
+        ]);
+
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->phone = $data['phone'] ?? null;
+        if (!empty($data['password'])) {
+            $user->password = Hash::make($data['password']);
+        }
+        $user->save();
+
+        return redirect()->route('customer.profile.edit')->with('status', app()->getLocale() === 'id'
+            ? 'Profil berhasil diperbarui.'
+            : 'Your profile has been updated.');
+    }
+
+    private function ensureCustomer(): void
+    {
+        abort_unless(Auth::check() && Auth::user()->hasRole('customer') && !Auth::user()->hasPermissionTo('admin.access'), 403);
     }
 }

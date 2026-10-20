@@ -23,11 +23,18 @@
             </a>
         </div>
         <div class="mt-6 rounded-2xl bg-slate-50 p-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
             <p class="font-bold text-bla-900">{{ $user->name }}</p>
             <p class="mt-1 text-sm text-slate-500">{{ $user->email }}</p>
             @if ($user->phone)
             <p class="mt-1 text-sm text-slate-500">{{ $user->phone }}</p>
             @endif
+            </div>
+            <a href="{{ route('customer.profile.edit') }}" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-bla-700 transition hover:border-bla-500 hover:bg-bla-50">
+                <i class="fa-solid fa-user-pen mr-2" aria-hidden="true"></i>{{ app()->getLocale() === 'id' ? 'Edit profil' : 'Edit profile' }}
+            </a>
+            </div>
         </div>
         <form action="{{ route('logout') }}" method="POST" class="mt-6">
             @csrf
