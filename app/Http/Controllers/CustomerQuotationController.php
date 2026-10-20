@@ -176,7 +176,17 @@ class CustomerQuotationController extends Controller
     public function showOrder(Request $request, Quotation $quotation)
     {
         $this->ensureCustomer();
-        abort_unless($quotation->user_id === $request->user()->id && $quotation->isOrder(), 404);
+        if ((int) $quotation->user_id !== (int) $request->user()->id) {
+            Log::warning('Customer order detail denied: owner mismatch.', [
+                'quotation_id' => $quotation->id,
+                'quotation_user_id' => $quotation->user_id,
+                'authenticated_user_id' => $request->user()->id,
+                'status' => $quotation->status,
+                'url' => $request->fullUrl(),
+            ]);
+
+            abort(404);
+        }
         $quotation->load(['items', 'paymentProofs.uploader']);
 
         return view('customer.quotations.show', ['quotation' => $quotation]);
