@@ -48,14 +48,12 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         background: #e9f1f2;
         color: #145866;
     }
-        .quotation-total-block {
-            width: 100%;
-            margin-top: 22px;
-            margin-left: auto;
-        }
-        @media (min-width: 640px) {
-            .quotation-total-block { width: 58%; }
-        }
+    .quotation-total-block {
+        width: min(100%, 385px);
+        margin: 22px 0 0 auto;
+    }
+    .quotation-total-block .quotation-grand-total { margin-top: 10px; }
+    .quotation-total-block .quotation-grand-total strong:last-child { white-space: nowrap; }
     .quotation-terms-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -84,6 +82,7 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         #main-content { margin: 0 !important; padding: 0 !important; }
         .print-document { width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
         .print-card { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+        .quotation-total-block { width: 385px !important; max-width: 100% !important; }
         .print-brand { display: flex !important; }
         a { color: inherit !important; text-decoration: none !important; }
         .print-avoid-break { break-inside: avoid; }
@@ -159,21 +158,17 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
             </table>
         </div>
 
-        <div class="quotation-total-block">
-        <div class="ml-auto grid max-w-sm gap-2 text-sm">
-            <p class="flex justify-between"><span>Subtotal</span><strong>Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</strong></p>
-            <p class="flex justify-between"><span>Delivery</span><strong>Rp {{ number_format($quotation->delivery_fee, 0, ',', '.') }}</strong></p>
-            <p class="flex justify-between"><span>Discount</span><strong>− Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</strong></p>
-        </div>
-
-        <section class="print-avoid-break mt-5">
+        <section class="quotation-total-block print-avoid-break" aria-label="Quotation total">
+            <div class="grid gap-2 text-sm">
+                <p class="flex justify-between gap-4"><span>Subtotal</span><strong class="whitespace-nowrap">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</strong></p>
+                <p class="flex justify-between gap-4"><span>Delivery</span><strong class="whitespace-nowrap">Rp {{ number_format($quotation->delivery_fee, 0, ',', '.') }}</strong></p>
+                <p class="flex justify-between gap-4"><span>Discount</span><strong class="whitespace-nowrap">− Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</strong></p>
+            </div>
             <div class="quotation-grand-total">
                 <div><strong class="block text-sm uppercase tracking-wide">GRAND TOTAL</strong><span class="block text-xs italic">VAT excluded</span></div>
                 <strong class="text-xl">Rp {{ number_format($quotation->total, 0, ',', '.') }}</strong>
             </div>
         </section>
-        </div>
-
         <section class="print-avoid-break mt-4">
             <h2 class="font-display text-xs font-extrabold uppercase tracking-wider text-bla-700">Terms &amp; Conditions</h2>
             <div class="quotation-terms-grid text-xs leading-5 text-slate-700">
