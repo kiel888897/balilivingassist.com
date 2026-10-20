@@ -4,6 +4,10 @@
 @section('page_title', 'Quotations')
 @section('page_description', 'Review new customer requests, edit quotes and track manual payment status.')
 
+@section('page_actions')
+<a class="btn" href="{{ route('admin.quotations.create') }}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add quotation</a>
+@endsection
+
 @section('content')
 <section class="stats-grid" aria-label="Quotation summary">
     <div class="stat-card">

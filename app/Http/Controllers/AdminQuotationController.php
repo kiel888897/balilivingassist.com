@@ -8,6 +8,7 @@ use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Models\QuotationRevision;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -21,6 +22,112 @@ class AdminQuotationController extends Controller
             'quotations' => Quotation::with('customer')->withCount('items')->latest()->get(),
             'newCount' => Quotation::where('status', 'new')->count(),
         ]);
+    }
+
+    public function create()
+    {
+        return view('admin.quotations.create', [
+            'customers' => User::whereHas('roles', function ($query) {
+                $query->where('slug', 'customer');
+            })->with('addresses')->orderBy('name')->get(),
+            'products' => Product::with('variants')
+                ->where('is_active', true)
+                ->where(function ($query) {
+                    $query->where('for_sale', true)->orWhere('for_rental', true);
+                })
+                ->orderBy('name')
+                ->get(),
+            'variants' => ProductVariant::where('is_active', true)
+                ->with(['product', 'values.attribute'])
+                ->orderBy('sku')
+                ->get(),
+            'services' => Service::where('is_active', true)->orderBy('name')->get(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'customer_id' => ['required', 'integer', 'exists:users,id'],
+            'customer_phone' => ['required', 'string', 'max:32'],
+            'shipping_address' => ['required', 'string', 'max:2000'],
+            'customer_note' => ['nullable', 'string', 'max:2000'],
+            'admin_note' => ['nullable', 'string', 'max:2000'],
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.type' => ['required', Rule::in(['product', 'rental', 'service', 'delivery', 'discount', 'custom'])],
+            'items.*.product_id' => ['nullable', 'integer', 'exists:products,id'],
+            'items.*.product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
+            'items.*.service_id' => ['nullable', 'integer', Rule::exists('services', 'id')->where('is_active', true)],
+            'items.*.description' => ['nullable', 'string', 'max:255'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99999'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
+            'items.*.rental_period' => ['nullable', Rule::in(['daily', 'weekly', 'monthly'])],
+        ]);
+
+        $customer = User::whereKey($data['customer_id'])
+            ->whereHas('roles', function ($query) {
+                $query->where('slug', 'customer');
+            })
+            ->first();
+        if (!$customer) {
+            throw ValidationException::withMessages([
+                'customer_id' => 'Choose an account with the customer role.',
+            ]);
+        }
+
+        $this->validateNewItems($data['items']);
+        $quotation = DB::transaction(function () use ($data, $customer) {
+            $quotation = Quotation::create([
+                'user_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'customer_phone' => $data['customer_phone'],
+                'shipping_address' => $data['shipping_address'],
+                'customer_note' => $data['customer_note'] ?? null,
+                'admin_note' => $data['admin_note'] ?? null,
+                'status' => 'new',
+                'subtotal' => 0,
+                'delivery_fee' => 0,
+                'discount_amount' => 0,
+                'total' => 0,
+            ]);
+            $quotation->quote_number = sprintf('BLA-Q-%s-%06d', now()->format('ymd'), $quotation->id);
+            $quotation->save();
+
+            foreach ($data['items'] as $item) {
+                $this->addItem($quotation, $item);
+            }
+
+            $totals = $this->totals($quotation->items()->get());
+            if ($totals['discount_amount'] > $totals['subtotal'] + $totals['delivery_fee']) {
+                throw ValidationException::withMessages([
+                    'items' => 'The discount cannot be greater than the quotation value.',
+                ]);
+            }
+            if ($totals['total'] > 9999999999.99) {
+                throw ValidationException::withMessages([
+                    'items' => 'The quotation total exceeds the supported amount.',
+                ]);
+            }
+
+            $quotation->update([
+                'subtotal' => $totals['subtotal'],
+                'delivery_fee' => $totals['delivery_fee'],
+                'discount_amount' => $totals['discount_amount'],
+                'total' => $totals['total'],
+            ]);
+
+            QuotationRevision::create([
+                'quotation_id' => $quotation->id,
+                'user_id' => auth()->id(),
+                'event' => 'admin_created',
+                'snapshot' => $this->snapshot($quotation->fresh('items')),
+            ]);
+
+            return $quotation;
+        });
+
+        return redirect()->route('admin.quotations.edit', $quotation)
+            ->with('status', 'Quotation created and revision saved.');
     }
 
     public function edit(Quotation $quotation)

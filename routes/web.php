@@ -161,6 +161,8 @@ Route::middleware('locale')->group(function () {
             });
             Route::middleware('permission:quotes.manage')->group(function () {
                 Route::get('/quotations', [AdminQuotationController::class, 'index'])->name('admin.quotations');
+                Route::get('/quotations/create', [AdminQuotationController::class, 'create'])->name('admin.quotations.create');
+                Route::post('/quotations', [AdminQuotationController::class, 'store'])->name('admin.quotations.store');
                 Route::get('/quotations/{quotation}', [AdminQuotationController::class, 'edit'])->name('admin.quotations.edit');
                 Route::put('/quotations/{quotation}', [AdminQuotationController::class, 'update'])->name('admin.quotations.update');
             });
