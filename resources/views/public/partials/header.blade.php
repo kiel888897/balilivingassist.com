@@ -33,6 +33,12 @@
         </div>
 
         <div class="ml-auto flex items-center gap-2 lg:hidden">
+        <a href="{{ route('cart') }}" class="relative grid h-11 w-11 place-items-center rounded-xl border border-slate-200 text-lg text-bla-700 hover:bg-bla-50" aria-label="{{ __('site.nav.cart') }}">
+            <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+            @if ($cartQuantity > 0)
+            <span class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-orange-600 px-1 text-[10px] font-bold leading-none text-white">{{ $cartQuantity > 99 ? '99+' : $cartQuantity }}</span>
+            @endif
+        </a>
         <div class="flex items-center rounded-lg border border-slate-200 p-1 text-xs font-bold" aria-label="{{ __('site.nav.language') }}">
             <a class="rounded-md px-2 py-1.5 {{ app()->getLocale() === 'en' ? 'bg-bla-600 text-white' : 'text-slate-500 hover:bg-slate-100' }}" href="{{ route('language.switch', ['locale' => 'en', 'next' => request()->getRequestUri()]) }}" lang="en">EN</a>
             <a class="rounded-md px-2 py-1.5 {{ app()->getLocale() === 'id' ? 'bg-bla-600 text-white' : 'text-slate-500 hover:bg-slate-100' }}" href="{{ route('language.switch', ['locale' => 'id', 'next' => request()->getRequestUri()]) }}" lang="id">ID</a>

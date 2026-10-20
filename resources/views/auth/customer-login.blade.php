@@ -27,6 +27,7 @@
                     <button type="button" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false" class="absolute inset-y-0 right-0 px-4 text-slate-500 hover:text-bla-700"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
                 </div>
                 @error('password') <p class="text-sm font-semibold text-rose-600" role="alert">{{ $message }}</p> @enderror
+                <a href="{{ route('password.request') }}" class="justify-self-end text-sm font-semibold text-bla-700 hover:text-bla-900">{{ __('site.auth.forgot_password') }}</a>
             </div>
             <label class="flex items-center gap-2 text-sm text-slate-600">
                 <input type="checkbox" name="remember" value="1" class="accent-bla-600">

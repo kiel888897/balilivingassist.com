@@ -47,11 +47,11 @@ class CreateAdminUser extends Command
         }
 
         $this->warn('Password input will be visible in this terminal.');
-        $password = $this->ask('Admin password (minimum 12 characters)');
+        $password = $this->ask('Admin password (minimum 6 characters)');
         $confirmation = $this->ask('Confirm password');
 
-        if (strlen($password) < 12 || $password !== $confirmation) {
-            $this->error('Passwords must match and be at least 12 characters long.');
+        if (strlen($password) < 6 || $password !== $confirmation) {
+            $this->error('Passwords must match and be at least 6 characters long.');
 
             return 1;
         }

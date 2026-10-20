@@ -7,7 +7,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Password;
+use Throwable;
 
 class CustomerAuthController extends Controller
 {
@@ -54,7 +57,7 @@ class CustomerAuthController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::min(12)],
+            'password' => ['required', 'confirmed', Password::min(6)],
         ]);
 
         $customerRole = Role::where('slug', 'customer')->firstOrFail();
@@ -64,6 +67,21 @@ class CustomerAuthController extends Controller
             'password' => Hash::make($data['password']),
         ]);
         $user->roles()->attach($customerRole);
+
+        try {
+            Mail::raw(
+                "A new customer has registered.\n\nName: {$user->name}\nEmail: {$user->email}",
+                function ($message) {
+                    $message->to(config('bla.email'))
+                        ->subject('New customer registration');
+                }
+            );
+        } catch (Throwable $exception) {
+            Log::error('Failed to send new customer registration notification.', [
+                'user_id' => $user->id,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
 
         Auth::login($user);
         $request->session()->regenerate();
