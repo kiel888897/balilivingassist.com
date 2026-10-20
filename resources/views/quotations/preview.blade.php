@@ -123,8 +123,29 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
             <p class="flex justify-between"><span>Subtotal</span><strong>Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</strong></p>
             <p class="flex justify-between"><span>Delivery</span><strong>Rp {{ number_format($quotation->delivery_fee, 0, ',', '.') }}</strong></p>
             <p class="flex justify-between"><span>Discount</span><strong>− Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</strong></p>
-            <p class="mt-2 flex justify-between border-t border-slate-300 pt-3 text-base"><strong>Total</strong><strong class="text-lg">Rp {{ number_format($quotation->total, 0, ',', '.') }}</strong></p>
+            <p class="mt-2 flex justify-between border-t border-slate-300 pt-3 text-base"><strong>GRAND TOTAL</strong><strong class="text-lg">Rp {{ number_format($quotation->total, 0, ',', '.') }}</strong></p>
+            <p class="text-right text-xs font-semibold italic text-slate-600">VAT excluded</p>
         </div>
+
+        <section class="print-avoid-break mt-8 border-t border-slate-200 pt-6">
+            <h2 class="font-display text-sm font-extrabold uppercase tracking-wider text-slate-900">Terms &amp; Conditions</h2>
+            <ol class="mt-3 list-decimal space-y-1 pl-5 text-sm leading-6 text-slate-700">
+                <li>Price excludes 11% VAT.</li>
+                <li>Prices are valid for the Java and Bali regions only.</li>
+            </ol>
+        </section>
+
+        <section class="print-avoid-break mt-6">
+            <h2 class="font-display text-sm font-extrabold uppercase tracking-wider text-slate-900">Terms of Payment</h2>
+            <p class="mt-3 text-sm font-bold text-slate-800">Full Payment in Advance</p>
+        </section>
+
+        <section class="print-avoid-break mt-7 text-sm leading-6 text-slate-700">
+            <p class="italic">Prices stated above are subject to change without prior notice.</p>
+            <p class="mt-5">Best regards,</p>
+            <p class="mt-5 font-extrabold text-slate-900">Bali Living Assist</p>
+            <p>+62 851-7332-3293</p>
+        </section>
 
         @if (!$isInvoice && $quotation->status === 'payment_requested' && $quotation->payment_instructions)
         <section class="print-avoid-break mt-7 rounded-xl bg-slate-50 p-5">
