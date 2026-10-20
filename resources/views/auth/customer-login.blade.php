@@ -22,7 +22,10 @@
             </div>
             <div class="grid gap-2">
                 <label for="password" class="text-sm font-bold text-slate-700">{{ __('site.auth.password') }}</label>
-                <input id="password" type="password" name="password" required autocomplete="current-password" class="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-bla-500 focus:ring-4 focus:ring-bla-100">
+                <div class="relative">
+                    <input id="password" type="password" name="password" required autocomplete="current-password" class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-12 outline-none focus:border-bla-500 focus:ring-4 focus:ring-bla-100">
+                    <button type="button" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false" class="absolute inset-y-0 right-0 px-4 text-slate-500 hover:text-bla-700"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                </div>
                 @error('password') <p class="text-sm font-semibold text-rose-600" role="alert">{{ $message }}</p> @enderror
             </div>
             <label class="flex items-center gap-2 text-sm text-slate-600">

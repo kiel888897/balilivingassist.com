@@ -1,6 +1,21 @@
 require('./bootstrap');
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
+        const input = document.getElementById(toggle.dataset.passwordToggle);
+        if (!input) return;
+
+        toggle.addEventListener('click', () => {
+            const reveal = input.type === 'password';
+            input.type = reveal ? 'text' : 'password';
+            toggle.setAttribute('aria-pressed', String(reveal));
+            toggle.setAttribute('aria-label', reveal ? 'Sembunyikan password' : 'Tampilkan password');
+            toggle.innerHTML = reveal
+                ? '<i class="fa-solid fa-eye-slash" aria-hidden="true"></i>'
+                : '<i class="fa-solid fa-eye" aria-hidden="true"></i>';
+        });
+    });
+
     const shopSort = document.querySelector('[data-shop-sort]');
     if (shopSort) {
         shopSort.addEventListener('change', () => shopSort.form?.requestSubmit());

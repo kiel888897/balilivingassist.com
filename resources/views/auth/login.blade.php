@@ -132,6 +132,29 @@
             font: inherit;
         }
 
+        .password-input-wrap {
+            position: relative;
+        }
+
+        .password-input-wrap input {
+            padding-right: 48px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            inset: 0 0 0 auto;
+            width: 48px;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .password-toggle:focus-visible {
+            outline: 3px solid rgba(8, 126, 121, .35);
+            border-radius: 8px;
+        }
+
         input:focus {
             outline: 3px solid rgba(8, 126, 121, .18);
             border-color: var(--teal);
@@ -255,7 +278,10 @@
 
                 <div class="field">
                     <label for="password">Password</label>
-                    <input id="password" type="password" name="password" required autocomplete="current-password">
+                    <div class="password-input-wrap">
+                        <input id="password" type="password" name="password" required autocomplete="current-password">
+                        <button type="button" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false" class="password-toggle"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                    </div>
                     @error('password') <div class="error" role="alert">{{ $message }}</div> @enderror
                 </div>
 

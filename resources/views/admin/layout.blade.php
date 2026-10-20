@@ -610,6 +610,29 @@
             font: inherit;
         }
 
+        .password-input-wrap {
+            position: relative;
+        }
+
+        .password-input-wrap input {
+            padding-right: 44px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            inset: 0 0 0 auto;
+            width: 42px;
+            border: 0;
+            background: transparent;
+            color: #657780;
+            cursor: pointer;
+        }
+
+        .password-toggle:focus-visible {
+            outline: 3px solid rgba(8, 126, 121, .35);
+            border-radius: 6px;
+        }
+
         .field input[readonly] {
             border-color: #dce5e2;
             background: #f4f7f6;

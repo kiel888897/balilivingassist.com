@@ -41,14 +41,20 @@
 
         <div class="field">
             <label for="password">{{ $user->exists ? 'New password (optional)' : 'Password' }}</label>
-            <input id="password" type="password" name="password" {{ $user->exists ? '' : 'required' }} minlength="12" autocomplete="new-password">
+            <div class="password-input-wrap">
+                <input id="password" type="password" name="password" {{ $user->exists ? '' : 'required' }} minlength="12" autocomplete="new-password">
+                <button type="button" data-password-toggle="password" aria-label="Tampilkan password" aria-pressed="false" class="password-toggle"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+            </div>
             @if ($user->exists)<span class="muted">Leave blank to keep the current password.</span>@endif
             @error('password') <div class="field-error">{{ $message }}</div> @enderror
         </div>
 
         <div class="field">
             <label for="password_confirmation">Confirm password</label>
-            <input id="password_confirmation" type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} minlength="12" autocomplete="new-password">
+            <div class="password-input-wrap">
+                <input id="password_confirmation" type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} minlength="12" autocomplete="new-password">
+                <button type="button" data-password-toggle="password_confirmation" aria-label="Tampilkan password" aria-pressed="false" class="password-toggle"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+            </div>
         </div>
     </div>
 
