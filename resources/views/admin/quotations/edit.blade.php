@@ -79,7 +79,7 @@ $rentalPeriodLabels = [
                 <div class="field field-wide">
                     <label for="payment_instructions">Manual payment instructions</label>
                     <textarea id="payment_instructions" name="payment_instructions" rows="3" maxlength="2000">{{ old('payment_instructions', $quotation->payment_instructions) }}</textarea>
-                    <span class="subtext">Required when status is set to PAYMENT REQUESTED. This system does not collect payments.</span>
+                    <span class="subtext">Default bank details are filled automatically. You can edit them if needed. This system does not collect payments.</span>
                 </div>
             </div>
 

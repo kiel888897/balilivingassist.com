@@ -17,6 +17,8 @@ use Illuminate\Validation\ValidationException;
 
 class AdminQuotationController extends Controller
 {
+    private const DEFAULT_PAYMENT_INSTRUCTIONS = "Bank : BCA\nAccount Number : 0402566076\nName : ANTONIO DODI HERYANTO SIMANJUNTAK";
+
     public function index()
     {
         return view('admin.quotations.index', [
@@ -53,6 +55,7 @@ class AdminQuotationController extends Controller
             'customer_phone' => ['required', 'string', 'max:32'],
             'shipping_address' => ['required', 'string', 'max:2000'],
             'customer_note' => ['nullable', 'string', 'max:2000'],
+            'payment_instructions' => ['nullable', 'string', 'max:2000'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.type' => ['required', Rule::in(['product', 'rental', 'service', 'delivery', 'discount', 'custom'])],
@@ -84,6 +87,7 @@ class AdminQuotationController extends Controller
                 'customer_phone' => $data['customer_phone'],
                 'shipping_address' => $data['shipping_address'],
                 'customer_note' => $data['customer_note'] ?? null,
+                'payment_instructions' => $data['payment_instructions'] ?? self::DEFAULT_PAYMENT_INSTRUCTIONS,
                 'admin_note' => $data['admin_note'] ?? null,
                 'status' => 'new',
                 'subtotal' => 0,
@@ -133,6 +137,11 @@ class AdminQuotationController extends Controller
 
     public function edit(Quotation $quotation)
     {
+        if (empty($quotation->payment_instructions)) {
+            $quotation->payment_instructions = self::DEFAULT_PAYMENT_INSTRUCTIONS;
+            $quotation->save();
+        }
+
         $quotation->load(['items', 'revisions.editor', 'paymentProofs.uploader']);
 
         return view('admin.quotations.edit', [
@@ -190,10 +199,9 @@ class AdminQuotationController extends Controller
             'new_items.*.rental_period' => ['nullable', Rule::in(['daily', 'weekly', 'monthly'])],
         ]);
 
-        if ($data['status'] === 'payment_requested' && empty($data['payment_instructions'])) {
-            throw ValidationException::withMessages([
-                'payment_instructions' => 'Enter payment instructions before requesting payment.',
-            ]);
+        $paymentInstructions = trim((string) ($data['payment_instructions'] ?? ''));
+        if ($paymentInstructions === '') {
+            $data['payment_instructions'] = self::DEFAULT_PAYMENT_INSTRUCTIONS;
         }
 
         $submittedItemIds = collect($data['items'])->pluck('id')->map(function ($id) {
@@ -289,7 +297,7 @@ class AdminQuotationController extends Controller
             $quotation->shipping_address = $data['shipping_address'];
             $quotation->customer_note = $data['customer_note'] ?? null;
             $quotation->admin_note = $data['admin_note'] ?? null;
-            $quotation->payment_instructions = $data['payment_instructions'] ?? null;
+            $quotation->payment_instructions = $data['payment_instructions'] ?? self::DEFAULT_PAYMENT_INSTRUCTIONS;
             $quotation->status = $data['status'];
 
             $totals = $this->totals($quotation->items()->get());
