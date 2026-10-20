@@ -156,7 +156,7 @@ class CustomerQuotationController extends Controller
 
             abort(404);
         }
-        $quotation->load('items');
+        $quotation->load(['items', 'paymentProofs.uploader']);
 
         return view('customer.quotations.show', ['quotation' => $quotation]);
     }
@@ -177,7 +177,7 @@ class CustomerQuotationController extends Controller
     {
         $this->ensureCustomer();
         abort_unless($quotation->user_id === $request->user()->id && $quotation->isOrder(), 404);
-        $quotation->load('items');
+        $quotation->load(['items', 'paymentProofs.uploader']);
 
         return view('customer.quotations.show', ['quotation' => $quotation]);
     }

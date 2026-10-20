@@ -5,9 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Quotation extends Model
 {
+    protected static function booted(): void
+    {
+        static::creating(function (Quotation $quotation) {
+            if (!$quotation->public_token) {
+                $quotation->public_token = Str::random(64);
+            }
+        });
+    }
+
     public const ORDER_STATUSES = [
         'payment_confirmed',
         'processing',
@@ -29,6 +39,7 @@ class Quotation extends Model
 
     protected $fillable = [
         'quote_number',
+        'public_token',
         'user_id',
         'customer_name',
         'customer_phone',
@@ -67,6 +78,17 @@ class Quotation extends Model
     public function revisions(): HasMany
     {
         return $this->hasMany(QuotationRevision::class)->with('editor')->latest();
+    }
+
+    public function paymentProofs(): HasMany
+    {
+        return $this->hasMany(QuotationPaymentProof::class)->latest();
+    }
+
+    public function hasPaidInvoice(): bool
+    {
+        return in_array($this->status, self::ORDER_STATUSES, true)
+            && $this->paymentProofs()->exists();
     }
 
     public function isOrder(): bool

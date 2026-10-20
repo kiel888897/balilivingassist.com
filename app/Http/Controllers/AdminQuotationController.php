@@ -11,6 +11,7 @@ use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -132,7 +133,7 @@ class AdminQuotationController extends Controller
 
     public function edit(Quotation $quotation)
     {
-        $quotation->load(['items', 'revisions.editor']);
+        $quotation->load(['items', 'revisions.editor', 'paymentProofs.uploader']);
 
         return view('admin.quotations.edit', [
             'quotation' => $quotation,
@@ -146,6 +147,15 @@ class AdminQuotationController extends Controller
             'variants' => ProductVariant::where('is_active', true)->with(['product', 'values.attribute'])->orderBy('sku')->get(),
             'statuses' => Quotation::STATUSES,
         ]);
+    }
+
+    public function regeneratePublicLink(Quotation $quotation)
+    {
+        $quotation->public_token = Str::random(64);
+        $quotation->save();
+
+        return redirect()->route('admin.quotations.edit', $quotation)
+            ->with('status', 'Public quotation link regenerated.');
     }
 
     public function update(Request $request, Quotation $quotation)

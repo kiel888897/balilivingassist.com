@@ -49,6 +49,7 @@
         @yield('content')
     </main>
     @include('public.partials.footer')
+    @stack('scripts')
     <script src="{{ mix('js/app.js') }}" defer></script>
 </body>
 

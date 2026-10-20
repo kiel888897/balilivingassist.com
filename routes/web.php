@@ -17,6 +17,8 @@ use App\Http\Controllers\CustomerPasswordResetController;
 use App\Http\Controllers\CustomerQuotationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PublicSiteController;
+use App\Http\Controllers\PublicQuotationController;
+use App\Http\Controllers\QuotationPaymentProofController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +65,8 @@ Route::get('/language/{locale}', function (Request $request, string $locale) {
 })->name('language.switch');
 
 Route::middleware('locale')->group(function () {
+    Route::get('/quotation-preview/{token}/invoice', [PublicQuotationController::class, 'invoice'])->name('quotations.preview.invoice');
+    Route::get('/quotation-preview/{token}', [PublicQuotationController::class, 'preview'])->name('quotations.preview');
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/shop', [HomeController::class, 'shop'])->name('shop');
     Route::get('/shop/{slug}', [HomeController::class, 'product'])->name('product.show');
@@ -112,6 +116,8 @@ Route::middleware('locale')->group(function () {
         Route::post('/quotations', [CustomerQuotationController::class, 'store'])->name('customer.quotations.store');
         Route::get('/account/quotations', [CustomerQuotationController::class, 'quotations'])->name('customer.quotations');
         Route::get('/account/quotations/{quotation}', [CustomerQuotationController::class, 'showQuotation'])->name('customer.quotations.show');
+        Route::post('/account/quotations/{quotation}/payment-proofs', [QuotationPaymentProofController::class, 'storeCustomer'])->name('customer.quotations.payment-proofs.store');
+        Route::get('/quotation-payment-proofs/{proof}', [QuotationPaymentProofController::class, 'download'])->name('quotation-payment-proofs.download');
         Route::get('/account/orders', [CustomerQuotationController::class, 'orders'])->name('customer.orders');
         Route::get('/account/orders/{quotation}', [CustomerQuotationController::class, 'showOrder'])->name('customer.orders.show');
 
@@ -165,6 +171,8 @@ Route::middleware('locale')->group(function () {
                 Route::post('/quotations', [AdminQuotationController::class, 'store'])->name('admin.quotations.store');
                 Route::get('/quotations/{quotation}', [AdminQuotationController::class, 'edit'])->name('admin.quotations.edit');
                 Route::put('/quotations/{quotation}', [AdminQuotationController::class, 'update'])->name('admin.quotations.update');
+                Route::post('/quotations/{quotation}/payment-proofs', [QuotationPaymentProofController::class, 'storeAdmin'])->name('admin.quotations.payment-proofs.store');
+                Route::post('/quotations/{quotation}/public-link', [AdminQuotationController::class, 'regeneratePublicLink'])->name('admin.quotations.public-link.regenerate');
             });
             Route::middleware('permission:rental.manage')->group(function () {
                 Route::get('/rental-categories', [AdminCategoryController::class, 'rentalIndex'])->name('admin.rental-categories');

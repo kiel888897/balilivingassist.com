@@ -15,6 +15,12 @@ $whatsappUrl = 'https://wa.me/' . preg_replace('/\D+/', '', config('bla.contact.
         <p class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800" role="status">{{ session('status') }}</p>
         @endif
         <a href="{{ $quotation->isOrder() ? route('customer.orders') : route('customer.quotations') }}" class="text-sm font-bold text-bla-700 hover:text-bla-900">← {{ $quotation->isOrder() ? __('site.quotation.orders') : __('site.quotation.title') }}</a>
+        <div class="no-print mt-5 flex flex-wrap gap-2">
+            <a class="rounded-lg bg-bla-700 px-4 py-2 text-sm font-bold text-white" href="{{ route('quotations.preview', $quotation->public_token) }}" target="_blank" rel="noopener">Preview / share quotation</a>
+            @if ($quotation->hasPaidInvoice())
+            <a class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-800" href="{{ route('quotations.preview.invoice', $quotation->public_token) }}" target="_blank" rel="noopener">View paid invoice</a>
+            @endif
+        </div>
         <div class="mt-4 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <p class="text-xs font-extrabold uppercase tracking-[.16em] text-bla-600">{{ __('site.quotation.number') }}</p>
@@ -58,16 +64,45 @@ $whatsappUrl = 'https://wa.me/' . preg_replace('/\D+/', '', config('bla.contact.
                     </div>
                 </section>
 
-                @if ($quotation->admin_note || $quotation->payment_instructions)
+                @if ($quotation->admin_note || ($quotation->status === 'payment_requested' && $quotation->payment_instructions))
                 <section class="rounded-2xl border border-slate-200 bg-white p-5">
                     @if ($quotation->admin_note)
                     <h2 class="font-display font-extrabold text-bla-900">{{ __('site.quotation.admin_note') }}</h2>
                     <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $quotation->admin_note }}</p>
                     @endif
-                    @if ($quotation->payment_instructions)
+                    @if ($quotation->status === 'payment_requested' && $quotation->payment_instructions)
                     <h2 class="mt-5 font-display font-extrabold text-bla-900">{{ __('site.quotation.payment_instructions') }}</h2>
                     <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $quotation->payment_instructions }}</p>
                     @endif
+                </section>
+                @endif
+                @if ($quotation->status === 'payment_requested')
+                <section class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                    <h2 class="font-display font-extrabold text-amber-950">Upload payment proof</h2>
+                    <p class="mt-2 text-sm leading-6 text-amber-900">Upload a JPG, PNG, WEBP, or PDF file (maximum 10 MB). The invoice becomes available after payment is confirmed by the admin.</p>
+                    <form class="mt-4 space-y-3" action="{{ route('customer.quotations.payment-proofs.store', $quotation) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <input type="file" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf" required class="block w-full rounded-lg border border-amber-300 bg-white p-2 text-sm">
+                        @error('proof')<p class="text-sm font-semibold text-red-700">{{ $message }}</p>@enderror
+                        <button class="rounded-lg bg-amber-800 px-4 py-2 text-sm font-bold text-white" type="submit">Upload proof</button>
+                    </form>
+                    @if ($quotation->paymentProofs->isNotEmpty())
+                    <div class="mt-4 border-t border-amber-200 pt-3">
+                        <p class="text-sm font-bold text-amber-950">Uploaded proofs</p>
+                        @foreach ($quotation->paymentProofs as $proof)
+                        <a class="mt-2 block text-sm font-semibold text-bla-700 underline" href="{{ route('quotation-payment-proofs.download', $proof) }}">{{ $proof->original_name }} · {{ $proof->created_at->format('d M Y H:i') }}</a>
+                        @endforeach
+                    </div>
+                    @endif
+                </section>
+                @endif
+
+                @if ($quotation->paymentProofs->isNotEmpty() && $quotation->status !== 'payment_requested')
+                <section class="rounded-2xl border border-slate-200 bg-white p-5">
+                    <h2 class="font-display font-extrabold text-bla-900">Payment proofs</h2>
+                    @foreach ($quotation->paymentProofs as $proof)
+                    <a class="mt-2 block text-sm font-semibold text-bla-700 underline" href="{{ route('quotation-payment-proofs.download', $proof) }}">{{ $proof->original_name }} · {{ $proof->created_at->format('d M Y H:i') }}</a>
+                    @endforeach
                 </section>
                 @endif
             </div>

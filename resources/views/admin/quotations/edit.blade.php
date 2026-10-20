@@ -339,6 +339,46 @@ $rentalPeriodLabels = [
         </section>
 
         <section class="panel">
+            <div class="panel-heading"><h2>Public quotation link</h2></div>
+            <div class="detail-form">
+                <p class="subtext">Anyone with this link can view the quotation without signing in. Share it only with the intended recipient.</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <input id="public-quotation-link" type="url" readonly value="{{ route('quotations.preview', $quotation->public_token) }}" style="flex:1;min-width:220px;">
+                    <button type="button" class="btn btn-light" data-copy-link="public-quotation-link">Copy link</button>
+                </div>
+                <a class="btn btn-light" href="{{ route('quotations.preview', $quotation->public_token) }}" target="_blank" rel="noopener">Open preview</a>
+                <form action="{{ route('admin.quotations.public-link.regenerate', $quotation) }}" method="POST" onsubmit="return confirm('Regenerate the link? The old shared link will stop working.');">
+                    @csrf
+                    <button type="submit" class="btn btn-light">Regenerate link</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading"><h2>Payment proofs</h2></div>
+            <div class="detail-form">
+                <form action="{{ route('admin.quotations.payment-proofs.store', $quotation) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <p class="subtext">Upload a JPG, PNG, WEBP, or PDF file (maximum 10 MB). An invoice is available only when the quotation is in a paid order status and at least one proof is present.</p>
+                    <input type="file" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf" required>
+                    @error('proof')<p class="status-error">{{ $message }}</p>@enderror
+                    <button type="submit" class="btn">Upload payment proof</button>
+                </form>
+                @forelse ($quotation->paymentProofs as $proof)
+                <div class="detail-card">
+                    <a href="{{ route('quotation-payment-proofs.download', $proof) }}"><strong>{{ $proof->original_name }}</strong></a>
+                    <span class="subtext">{{ strtoupper($proof->source) }} · {{ $proof->uploader->name ?? 'Unknown uploader' }} · {{ $proof->created_at->format('d M Y H:i') }}</span>
+                </div>
+                @empty
+                <p class="muted">No payment proof uploaded yet. The paid invoice stays hidden until a proof is uploaded and payment is confirmed.</p>
+                @endforelse
+                @if ($quotation->hasPaidInvoice())
+                <a class="btn btn-light" href="{{ route('quotations.preview.invoice', $quotation->public_token) }}" target="_blank" rel="noopener">Open paid invoice</a>
+                @endif
+            </div>
+        </section>
+
+        <section class="panel">
             <div class="panel-heading"><h2>Revision history</h2></div>
             <div class="detail-form">
                 @forelse ($quotation->revisions as $revision)
@@ -368,6 +408,19 @@ $rentalPeriodLabels = [
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('[data-copy-link]').forEach(function (button) {
+            button.addEventListener('click', async function () {
+                var input = document.getElementById(button.dataset.copyLink);
+                try {
+                    await navigator.clipboard.writeText(input.value);
+                    button.textContent = 'Copied';
+                } catch (error) {
+                    input.select();
+                    document.execCommand('copy');
+                    button.textContent = 'Copied';
+                }
+            });
+        });
         var itemDialog = document.querySelector('[data-quote-item-dialog]');
         var itemsContainer = document.querySelector('[data-quote-items]');
         var itemTemplate = document.querySelector('[data-new-quote-item-template]');
