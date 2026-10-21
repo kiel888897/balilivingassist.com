@@ -1,11 +1,11 @@
 @extends('admin.layout')
 
-@section('title', 'Edit ' . $quotation->quote_number)
-@section('page_title', 'Review quotation ' . $quotation->quote_number)
-@section('page_description', 'Edit line items, delivery, discount, address and status. Every save creates an audit revision.')
+@section('title', ($quotation->isOrder() ? 'Edit order ' : 'Edit quotation ') . $quotation->quote_number)
+@section('page_title', ($quotation->isOrder() ? 'Manage order ' : 'Review quotation ') . $quotation->quote_number)
+@section('page_description', 'Edit items, delivery, discount and address. Every save creates an audit revision.')
 
 @section('page_actions')
-<a class="btn btn-light" href="{{ route('admin.quotations') }}">Back to quotations</a>
+<a class="btn btn-light" href="{{ route('admin.quotations', $quotation->isOrder() ? ['status' => 'orders'] : []) }}">Back to {{ $quotation->isOrder() ? 'orders' : 'quotations' }}</a>
 @endsection
 
 @section('content')
@@ -70,7 +70,7 @@ $rentalPeriodLabels = [
     <section class="panel">
         <div class="panel-heading">
             <div>
-                <h2>Quotation details</h2>
+                <h2>{{ $quotation->isOrder() ? 'Order details' : 'Quotation details' }}</h2>
                 <span class="subtext">Submitted {{ $quotation->created_at->format('d M Y H:i') }}</span>
             </div>
             <span class="badge">{{ strtoupper(str_replace('_', ' ', $quotation->status)) }}</span>
@@ -97,12 +97,32 @@ $rentalPeriodLabels = [
                     <textarea id="customer_note" name="customer_note" rows="2" maxlength="2000">{{ old('customer_note', $quotation->customer_note) }}</textarea>
                 </div>
                 <div class="field">
-                    <label for="status">Status</label>
+                    @php
+                    $selectedStatus = in_array(old('status', $quotation->status), $statuses, true)
+                        ? old('status', $quotation->status)
+                        : $quotation->status;
+                    $statusLabels = [
+                        'waiting_admin' => 'Waiting for admin',
+                        'waiting_customer' => 'Waiting for customer',
+                        'changes_requested' => 'Changes requested',
+                        'payment_requested' => 'Awaiting payment',
+                        'payment_review' => 'Payment under review',
+                        'payment_confirmed' => 'Paid',
+                    ];
+                    @endphp
+                    <label for="status">{{ $quotation->isOrder() ? 'Order progress' : 'Quotation status' }}</label>
+                    @if (count($statuses) > 1)
                     <select id="status" name="status" required>
                         @foreach ($statuses as $status)
-                        <option value="{{ $status }}" {{ old('status', $quotation->status) === $status ? 'selected' : '' }}>{{ strtoupper(str_replace('_', ' ', $status)) }}</option>
+                        <option value="{{ $status }}" {{ $selectedStatus === $status ? 'selected' : '' }}>{{ $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)) }}</option>
                         @endforeach
                     </select>
+                    <span class="subtext">{{ $quotation->isOrder() ? 'Update the order’s fulfillment stage here. Payment decisions use the review actions above.' : 'Choose whether to keep this quotation in its current queue, save it as a draft, or send it to the customer.' }}</span>
+                    @else
+                    <input id="status_display" value="{{ $statusLabels[$selectedStatus] ?? ucfirst(str_replace('_', ' ', $selectedStatus)) }}" readonly aria-readonly="true">
+                    <input type="hidden" id="status" name="status" value="{{ $selectedStatus }}">
+                    <span class="subtext">This stage is updated through its dedicated workflow action.</span>
+                    @endif
                 </div>
                 <div class="field field-wide">
                     <label for="admin_note">Message / note for customer</label>
@@ -355,7 +375,7 @@ $rentalPeriodLabels = [
             </div>
 
             <div class="detail-actions">
-                <button class="btn" type="submit">Save quotation changes</button>
+                <button class="btn" type="submit">Save {{ $quotation->isOrder() ? 'order' : 'quotation' }} changes</button>
             </div>
         </form>
     </section>

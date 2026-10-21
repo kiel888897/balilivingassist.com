@@ -24,9 +24,10 @@ class AdminQuotationController extends Controller
         $filter = $request->query('status', 'all');
         $query = Quotation::with('customer')->withCount('items');
         if ($filter === 'orders') {
-            $query->where(function ($q) { $q->where('is_order', true)->orWhereIn('status', ['payment_requested', 'payment_review', 'payment_confirmed', 'processing', 'shipped', 'completed']); });
+            $query->where(function ($q) { $q->where('is_order', true)->orWhereIn('status', Quotation::ORDER_STATUSES); });
         } elseif ($filter === 'payment_review') {
-            $query->where('status', 'payment_review');
+            $query->where(function ($q) { $q->where('is_order', true)->orWhereIn('status', Quotation::ORDER_STATUSES); })
+                ->where('status', 'payment_review');
         } elseif ($filter === 'waiting_admin') {
             $query->whereIn('status', ['waiting_admin', 'changes_requested', 'new', 'under_review', 'needs_information']);
         } elseif ($filter === 'waiting_customer') {
@@ -36,13 +37,16 @@ class AdminQuotationController extends Controller
         } elseif ($filter === 'rejected') {
             $query->where('status', 'rejected');
         } elseif ($filter === 'awaiting_payment') {
-            $query->where('status', 'payment_requested');
+            $query->where(function ($q) { $q->where('is_order', true)->orWhereIn('status', Quotation::ORDER_STATUSES); })
+                ->where('status', 'payment_requested');
         } elseif ($filter === 'paid') {
-            $query->where('status', 'payment_confirmed');
+            $query->where(function ($q) { $q->where('is_order', true)->orWhereIn('status', Quotation::ORDER_STATUSES); })
+                ->where('status', 'payment_confirmed');
         } elseif ($filter === 'cancelled') {
-            $query->where('status', 'cancelled');
+            $query->where(function ($q) { $q->where('is_order', true)->orWhereIn('status', Quotation::ORDER_STATUSES); })
+                ->where('status', 'cancelled');
         } else {
-            $query->where('is_order', false);
+            $query->where('is_order', false)->whereNotIn('status', Quotation::ORDER_STATUSES);
         }
         return view('admin.quotations.index', [
             'quotations' => $query->latest()->get(),
@@ -56,7 +60,7 @@ class AdminQuotationController extends Controller
                 'paid' => Quotation::where('status', 'payment_confirmed')->count(),
                 'rejected' => Quotation::where('status', 'rejected')->count(),
                 'cancelled' => Quotation::where('status', 'cancelled')->count(),
-                'orders' => Quotation::where(function ($q) { $q->where('is_order', true)->orWhereIn('status', ['payment_requested', 'payment_review', 'payment_confirmed', 'processing', 'shipped', 'completed']); })->count(),
+                'orders' => Quotation::where(function ($q) { $q->where('is_order', true)->orWhereIn('status', Quotation::ORDER_STATUSES); })->count(),
             ],
         ]);
     }
@@ -193,9 +197,7 @@ class AdminQuotationController extends Controller
                 ->orderBy('name')
                 ->get(),
             'variants' => ProductVariant::where('is_active', true)->with(['product', 'values.attribute'])->orderBy('sku')->get(),
-            'statuses' => array_values(array_filter(Quotation::STATUSES, function ($status) use ($quotation) {
-                return $status !== 'accepted' || $quotation->status === 'accepted';
-            })),
+            'statuses' => $this->editableStatuses($quotation),
         ]);
     }
 
@@ -215,7 +217,7 @@ class AdminQuotationController extends Controller
             'customer_note' => ['nullable', 'string', 'max:2000'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
             'payment_instructions' => ['nullable', 'string', 'max:2000'],
-            'status' => ['required', Rule::in(Quotation::STATUSES)],
+            'status' => ['required', Rule::in($this->editableStatuses($quotation))],
             'items' => ['required', 'array'],
             'items.*.id' => ['required', 'integer', 'exists:quotation_items,id'],
             'items.*.description' => ['required', 'string', 'max:255'],
@@ -641,6 +643,40 @@ class AdminQuotationController extends Controller
         $amount = round($quantity * $unitPrice, 2);
 
         return in_array($type, ['discount', 'payment_received'], true) ? -$amount : $amount;
+    }
+
+    /**
+     * Keep quotation decisions and order progress in their own workflows.
+     * Payment review and acceptance are handled by their dedicated actions.
+     */
+    private function editableStatuses(Quotation $quotation): array
+    {
+        if ($quotation->isOrder()) {
+            if ($quotation->status === 'payment_requested') {
+                return ['payment_requested', 'cancelled'];
+            }
+
+            if ($quotation->status === 'payment_review') {
+                return ['payment_review'];
+            }
+
+            if (in_array($quotation->status, ['payment_confirmed', 'processing', 'shipped', 'completed'], true)) {
+                return ['payment_confirmed', 'processing', 'shipped', 'completed', 'cancelled'];
+            }
+
+            return [$quotation->status];
+        }
+
+        if (in_array($quotation->status, ['draft', 'waiting_admin', 'waiting_customer', 'changes_requested'], true)) {
+            $statuses = ['draft', 'waiting_customer'];
+            if (in_array($quotation->status, ['waiting_admin', 'changes_requested'], true)) {
+                array_unshift($statuses, $quotation->status);
+            }
+
+            return array_values(array_unique($statuses));
+        }
+
+        return [$quotation->status];
     }
 
     private function totals($items): array
