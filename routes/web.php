@@ -15,6 +15,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\CustomerPasswordResetController;
 use App\Http\Controllers\CustomerQuotationController;
+use App\Http\Controllers\CustomerAddressController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PublicSiteController;
 use App\Http\Controllers\PublicQuotationController;
@@ -111,6 +112,10 @@ Route::middleware('locale')->group(function () {
         Route::get('/account', [CustomerAuthController::class, 'account'])->name('customer.account');
         Route::get('/account/profile/edit', [CustomerAuthController::class, 'editProfile'])->name('customer.profile.edit');
         Route::put('/account/profile', [CustomerAuthController::class, 'updateProfile'])->name('customer.profile.update');
+        Route::get('/account/addresses', [CustomerAddressController::class, 'index'])->name('customer.addresses');
+        Route::post('/account/addresses', [CustomerAddressController::class, 'store'])->name('customer.addresses.store');
+        Route::put('/account/addresses/{address}', [CustomerAddressController::class, 'update'])->name('customer.addresses.update');
+        Route::delete('/account/addresses/{address}', [CustomerAddressController::class, 'destroy'])->name('customer.addresses.destroy');
         Route::get('/cart', [CartController::class, 'index'])->name('cart');
         Route::post('/cart/items/update', [CartController::class, 'update'])->name('cart.items.update');
         Route::post('/cart/items/remove', [CartController::class, 'destroy'])->name('cart.items.destroy');

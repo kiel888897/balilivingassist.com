@@ -21,6 +21,16 @@
         </div>
         @endif
 
+        @php
+        $defaultAddressChoice = $addresses->first()
+            ? 'saved:' . $addresses->first()->id
+            : 'new';
+        $lastUsedAddressId = $addresses->first() && $addresses->first()->last_used_at
+            ? $addresses->first()->id
+            : null;
+        $selectedAddressChoice = old('address_choice', $defaultAddressChoice);
+        @endphp
+
         <div class="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
             <form action="{{ route('customer.quotations.store') }}" method="POST" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
                 @csrf
@@ -30,12 +40,28 @@
                         <input id="customer_phone" name="customer_phone" type="tel" value="{{ old('customer_phone', $customer->phone) }}" required autocomplete="tel" maxlength="32" class="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-bla-500 focus:ring-4 focus:ring-bla-100">
                         @error('customer_phone') <p class="text-sm font-semibold text-rose-600">{{ $message }}</p> @enderror
                     </div>
-                    <div class="grid gap-2">
-                        <label for="shipping_address" class="text-sm font-bold text-slate-700">{{ __('site.checkout.address') }}</label>
-                        <textarea id="shipping_address" name="shipping_address" rows="4" required maxlength="2000" autocomplete="street-address" class="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-bla-500 focus:ring-4 focus:ring-bla-100">{{ old('shipping_address') }}</textarea>
-                        <p class="text-xs leading-5 text-slate-500">{{ __('site.checkout.address_hint') }}</p>
-                        @error('shipping_address') <p class="text-sm font-semibold text-rose-600">{{ $message }}</p> @enderror
-                    </div>
+                    <fieldset class="grid gap-3">
+                        <legend class="text-sm font-bold text-slate-700">{{ __('site.checkout.address') }}</legend>
+                        <p class="-mt-1 text-xs leading-5 text-slate-500">{{ __('site.addresses.checkout_hint') }}</p>
+                        @foreach ($addresses as $address)
+                        @php($addressChoice = 'saved:' . $address->id)
+                        <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition {{ $selectedAddressChoice === $addressChoice ? 'border-bla-500 bg-bla-50 ring-2 ring-bla-100' : 'border-slate-200 bg-white hover:border-bla-300' }}">
+                            <input type="radio" name="address_choice" value="{{ $addressChoice }}" data-address-choice class="mt-1 accent-bla-700" {{ $selectedAddressChoice === $addressChoice ? 'checked' : '' }}>
+                            <span class="min-w-0"><span class="flex flex-wrap items-center gap-2 font-bold text-slate-800">{{ $address->label ?: __('site.addresses.address') }}@if ($address->id === $lastUsedAddressId)<span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-800">{{ __('site.addresses.last_used') }}</span>@endif</span><span class="mt-1 block whitespace-pre-line text-sm leading-6 text-slate-600">{{ $address->address }}</span></span>
+                        </label>
+                        @endforeach
+                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition {{ $selectedAddressChoice === 'new' ? 'border-bla-500 bg-bla-50 ring-2 ring-bla-100' : 'border-slate-200 bg-white hover:border-bla-300' }}">
+                            <input type="radio" name="address_choice" value="new" data-address-choice class="accent-bla-700" {{ $selectedAddressChoice === 'new' ? 'checked' : '' }}>
+                            <span class="font-bold text-bla-800"><i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>{{ __('site.addresses.add_new') }}</span>
+                        </label>
+                        @error('address_choice') <p class="text-sm font-semibold text-rose-600">{{ $message }}</p> @enderror
+
+                        <div data-new-address-fields class="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4" {{ $selectedAddressChoice === 'new' ? '' : 'hidden' }}>
+                            <div class="grid gap-2"><label for="new_address_label" class="text-sm font-bold text-slate-700">{{ __('site.addresses.label') }}</label><input id="new_address_label" name="new_address_label" value="{{ old('new_address_label') }}" maxlength="100" placeholder="{{ __('site.addresses.label_placeholder') }}" class="rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-bla-500 focus:ring-4 focus:ring-bla-100"></div>
+                            <div class="grid gap-2"><label for="new_address" class="text-sm font-bold text-slate-700">{{ __('site.addresses.full_address') }}</label><textarea id="new_address" name="new_address" rows="4" maxlength="2000" autocomplete="street-address" class="rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-bla-500 focus:ring-4 focus:ring-bla-100">{{ old('new_address') }}</textarea><p class="text-xs leading-5 text-slate-500">{{ __('site.checkout.address_hint') }}</p>@error('new_address')<p class="text-sm font-semibold text-rose-600">{{ $message }}</p>@enderror</div>
+                            <label class="flex items-start gap-2 text-sm text-slate-700"><input type="checkbox" name="save_new_address" value="1" {{ old('save_new_address') ? 'checked' : '' }} class="mt-1 accent-bla-700"><span>{{ __('site.addresses.save_for_later') }}</span></label>
+                        </div>
+                    </fieldset>
                     <div class="grid gap-2">
                         <label for="customer_note" class="text-sm font-bold text-slate-700">{{ __('site.checkout.notes') }}</label>
                         <textarea id="customer_note" name="customer_note" rows="3" maxlength="2000" class="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-bla-500 focus:ring-4 focus:ring-bla-100">{{ old('customer_note') }}</textarea>
@@ -83,3 +109,29 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var choices = document.querySelectorAll('[data-address-choice]');
+        var newFields = document.querySelector('[data-new-address-fields]');
+        var newAddress = document.getElementById('new_address');
+        function updateAddressChoice() {
+            var isNew = document.querySelector('[data-address-choice]:checked')?.value === 'new';
+            if (!newFields) return;
+            newFields.hidden = !isNew;
+            if (newAddress) newAddress.required = isNew;
+            newFields.closest('fieldset').querySelectorAll('label').forEach(function (label) {
+                var input = label.querySelector('[data-address-choice]');
+                if (!input) return;
+                label.classList.toggle('border-bla-500', input.checked);
+                label.classList.toggle('bg-bla-50', input.checked);
+                label.classList.toggle('ring-2', input.checked);
+                label.classList.toggle('ring-bla-100', input.checked);
+            });
+        }
+        choices.forEach(function (choice) { choice.addEventListener('change', updateAddressChoice); });
+        updateAddressChoice();
+    });
+</script>
+@endpush

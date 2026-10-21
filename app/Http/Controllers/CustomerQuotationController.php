@@ -42,6 +42,12 @@ class CustomerQuotationController extends Controller
             'lines' => $lines,
             'subtotal' => $subtotal,
             'customer' => $request->user(),
+            'addresses' => $request->user()->addresses()
+                ->reorder()
+                ->orderByRaw('last_used_at IS NULL')
+                ->orderByDesc('last_used_at')
+                ->orderByDesc('id')
+                ->get(),
         ]);
     }
 
@@ -50,12 +56,26 @@ class CustomerQuotationController extends Controller
         $this->ensureCustomer();
         $data = $request->validate([
             'customer_phone' => ['required', 'string', 'max:32', 'regex:/^[0-9+\s().-]{7,32}$/'],
-            'shipping_address' => ['required', 'string', 'max:2000'],
+            'address_choice' => ['required', 'string', 'max:32'],
+            'new_address_label' => ['nullable', 'string', 'max:100'],
+            'new_address' => ['nullable', 'string', 'max:2000'],
+            'save_new_address' => ['nullable', 'boolean'],
             'customer_note' => ['nullable', 'string', 'max:2000'],
         ]);
         $user = $request->user();
 
-        $quotation = DB::transaction(function () use ($user, $data) {
+        $selectedAddress = null;
+        if (preg_match('/^saved:(\d+)$/', $data['address_choice'], $addressMatch)) {
+            $selectedAddress = $user->addresses()->whereKey((int) $addressMatch[1])->firstOrFail();
+            $shippingAddress = $selectedAddress->address;
+        } elseif ($data['address_choice'] === 'new') {
+            $request->validate(['new_address' => ['required', 'string', 'max:2000']]);
+            $shippingAddress = $data['new_address'];
+        } else {
+            return back()->withErrors(['address_choice' => __('site.addresses.choose_address')])->withInput();
+        }
+
+        $quotation = DB::transaction(function () use ($user, $data, $selectedAddress, $shippingAddress) {
             $cartItems = $user->cartItems()
                 ->where('is_selected', true)
                 ->with(['product.variants.values.attribute', 'product.variants.priceTiers'])
@@ -78,11 +98,21 @@ class CustomerQuotationController extends Controller
                 $subtotal = round($subtotal + $line['line_total'], 2);
             }
 
+            if ($selectedAddress) {
+                $user->addresses()->whereKey($selectedAddress->id)->update(['last_used_at' => now()]);
+            } elseif (!empty($data['save_new_address'])) {
+                $user->addresses()->create([
+                    'label' => $data['new_address_label'] ?? null,
+                    'address' => $shippingAddress,
+                    'last_used_at' => now(),
+                ]);
+            }
+
             $quotation = Quotation::create([
                 'user_id' => $user->id,
                 'customer_name' => $user->name,
                 'customer_phone' => $data['customer_phone'],
-                'shipping_address' => $data['shipping_address'],
+                'shipping_address' => $shippingAddress,
                 'customer_note' => $data['customer_note'] ?? null,
                 'status' => 'waiting_admin',
                 'subtotal' => $subtotal,

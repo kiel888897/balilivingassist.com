@@ -28,6 +28,10 @@
         </div>
         @endif
 
+        <a href="{{ route('customer.addresses') }}" class="mt-6 flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-bla-300 hover:bg-bla-50">
+            <span class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-lg bg-white text-bla-700"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i></span><span><strong class="block text-sm text-slate-800">{{ __('site.addresses.title') }}</strong><span class="mt-0.5 block text-xs text-slate-500">{{ __('site.addresses.profile_link') }}</span></span></span><i class="fa-solid fa-chevron-right text-xs text-slate-400" aria-hidden="true"></i>
+        </a>
+
         <form class="mt-7 space-y-5" method="POST" action="{{ route('customer.profile.update') }}">
             @csrf
             @method('PUT')
