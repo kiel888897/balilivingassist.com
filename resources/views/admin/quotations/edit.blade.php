@@ -366,7 +366,11 @@ $rentalPeriodLabels = [
             <div class="panel-body">
                 <p class="flex justify-between"><span>Subtotal</span><strong>Rp <span data-quote-subtotal>{{ number_format($quotation->subtotal, 0, ',', '.') }}</span></strong></p>
                 <p class="mt-3 flex justify-between"><span>Delivery</span><strong>Rp <span data-quote-delivery>{{ number_format($quotation->delivery_fee, 0, ',', '.') }}</span></strong></p>
-                @php($paidAmount = $quotation->items->where('item_type', 'payment_received')->sum(function ($item) { return abs((float) $item->line_total); }))
+                @php
+                $paidAmount = $quotation->items->where('item_type', 'payment_received')->sum(function ($item) {
+                    return abs((float) $item->line_total);
+                });
+                @endphp
                 <p class="mt-3 flex justify-between"><span>Discount</span><strong>- Rp <span data-quote-discount>{{ number_format($quotation->discount_amount, 0, ',', '.') }}</span></strong></p>
                 <p class="mt-3 flex justify-between"><span>Done payment</span><strong>- Rp <span data-quote-paid>{{ number_format($paidAmount, 0, ',', '.') }}</span></strong></p>
                 <p class="mt-4 flex justify-between border-t border-slate-200 pt-4 text-base"><strong>Total</strong><strong>Rp <span data-quote-total>{{ number_format($quotation->total, 0, ',', '.') }}</span></strong></p>

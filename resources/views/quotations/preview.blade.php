@@ -159,7 +159,11 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         </div>
 
         <section class="quotation-total-block print-avoid-break" aria-label="Quotation total">
-            @php($paymentReceivedAmount = $quotation->items->where('item_type', 'payment_received')->sum(function ($item) { return abs((float) $item->line_total); }))
+            @php
+            $paymentReceivedAmount = $quotation->items->where('item_type', 'payment_received')->sum(function ($item) {
+                return abs((float) $item->line_total);
+            });
+            @endphp
             <div class="grid gap-2 text-sm">
                 <p class="flex justify-between gap-4"><span>Subtotal</span><strong class="whitespace-nowrap">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</strong></p>
                 <p class="flex justify-between gap-4"><span>Delivery</span><strong class="whitespace-nowrap">Rp {{ number_format($quotation->delivery_fee, 0, ',', '.') }}</strong></p>
