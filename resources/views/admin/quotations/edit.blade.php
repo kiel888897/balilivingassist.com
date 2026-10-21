@@ -120,8 +120,8 @@ $rentalPeriodLabels = [
                                 <input class="quote-description-input" id="item_description_{{ $item->id }}" name="items[{{ $item->id }}][description]" value="{{ old('items.' . $item->id . '.description', $item->description) }}" maxlength="255" required>
                                 @if ($item->options_snapshot)
                                 <p class="quote-item-options">{{ $itemOptions->implode(' · ') }}</p>
-                                @elseif ($item->item_type === 'discount')
-                                <p class="quote-item-options">Enter the discount as a positive amount.</p>
+                                @elseif (in_array($item->item_type, ['discount', 'payment_received'], true))
+                                <p class="quote-item-options">{{ $item->item_type === 'payment_received' ? 'Enter the payment received as a positive amount; it will reduce the balance due.' : 'Enter the discount as a positive amount.' }}</p>
                                 @endif
                             </div>
                             <div class="quote-item-controls">
@@ -144,7 +144,7 @@ $rentalPeriodLabels = [
                                     </div>
                                 </div>
                                 <div class="quote-item-control quote-price-control">
-                                    <label for="item_price_{{ $item->id }}">{{ $item->item_type === 'discount' ? 'Discount amount (IDR)' : 'Unit price (IDR)' }}</label>
+                                    <label for="item_price_{{ $item->id }}">{{ $item->item_type === 'payment_received' ? 'Payment received (IDR)' : ($item->item_type === 'discount' ? 'Discount amount (IDR)' : 'Unit price (IDR)') }}</label>
                                     <input id="item_price_{{ $item->id }}" name="items[{{ $item->id }}][unit_price]" type="number" min="0" step="0.01" value="{{ old('items.' . $item->id . '.unit_price', $item->unit_price) }}" data-quote-price required>
                                 </div>
                                 <div class="quote-line-total" data-quote-line-total aria-live="polite"></div>
@@ -181,8 +181,8 @@ $rentalPeriodLabels = [
                                 <input class="quote-description-input" id="pending_item_description_{{ $pendingIndex }}" name="new_items[{{ $pendingIndex }}][description]" value="{{ $pendingDescription }}" maxlength="255" required>
                                 @if ($pendingVariant && $pendingVariant->values->isNotEmpty())
                                 <p class="quote-item-options">{{ $pendingVariant->values->map(function ($value) { return $value->attribute->name . ': ' . $value->value; })->implode(' · ') }}</p>
-                                @elseif ($pendingType === 'discount')
-                                <p class="quote-item-options">Enter the discount as a positive amount.</p>
+                                @elseif (in_array($pendingType, ['discount', 'payment_received'], true))
+                                <p class="quote-item-options">{{ $pendingType === 'payment_received' ? 'Enter the payment received as a positive amount; it will reduce the balance due.' : 'Enter the discount as a positive amount.' }}</p>
                                 @elseif ($pendingType === 'rental')
                                 <p class="quote-item-options">Rental period: {{ ucfirst($pendingRentalPeriod) }}</p>
                                 @endif
@@ -207,7 +207,7 @@ $rentalPeriodLabels = [
                                 <input type="hidden" name="new_items[{{ $pendingIndex }}][quantity]" value="1" data-new-fixed-quantity>
                                 @endif
                                 <div class="quote-item-control quote-price-control">
-                                    <label for="pending_item_price_{{ $pendingIndex }}">{{ $pendingType === 'discount' ? 'Discount amount (IDR)' : 'Unit price (IDR)' }}</label>
+                                    <label for="pending_item_price_{{ $pendingIndex }}">{{ $pendingType === 'payment_received' ? 'Payment received (IDR)' : ($pendingType === 'discount' ? 'Discount amount (IDR)' : 'Unit price (IDR)') }}</label>
                                     <input id="pending_item_price_{{ $pendingIndex }}" name="new_items[{{ $pendingIndex }}][unit_price]" type="number" min="0" step="0.01" value="{{ $pendingPrice }}" data-quote-price required>
                                 </div>
                                 <div class="quote-line-total" data-quote-line-total aria-live="polite"></div>
@@ -237,6 +237,7 @@ $rentalPeriodLabels = [
                                     <option value="service">Service</option>
                                     <option value="delivery">Delivery fee</option>
                                     <option value="discount">Discount</option>
+                                    <option value="payment_received">Done payment</option>
                                     <option value="custom">Custom charge</option>
                                 </select>
                             </div>
@@ -275,7 +276,7 @@ $rentalPeriodLabels = [
                             <div class="field" data-modal-price-group hidden>
                                 <label for="modal_item_price">Price / amount (IDR)</label>
                                 <input id="modal_item_price" type="number" min="0" step="0.01" data-modal-price>
-                                <span class="subtext" data-modal-discount-hint hidden>Enter the discount as a positive amount; it will be deducted from the quote.</span>
+                                <span class="subtext" data-modal-discount-hint hidden>Enter this amount as a positive number; it will be deducted from the balance due.</span>
                             </div>
                         </div>
                         <div class="quote-dialog-actions">
@@ -333,7 +334,9 @@ $rentalPeriodLabels = [
             <div class="panel-body">
                 <p class="flex justify-between"><span>Subtotal</span><strong>Rp <span data-quote-subtotal>{{ number_format($quotation->subtotal, 0, ',', '.') }}</span></strong></p>
                 <p class="mt-3 flex justify-between"><span>Delivery</span><strong>Rp <span data-quote-delivery>{{ number_format($quotation->delivery_fee, 0, ',', '.') }}</span></strong></p>
+                @php($paidAmount = $quotation->items->where('item_type', 'payment_received')->sum(function ($item) { return abs((float) $item->line_total); }))
                 <p class="mt-3 flex justify-between"><span>Discount</span><strong>- Rp <span data-quote-discount>{{ number_format($quotation->discount_amount, 0, ',', '.') }}</span></strong></p>
+                <p class="mt-3 flex justify-between"><span>Done payment</span><strong>- Rp <span data-quote-paid>{{ number_format($paidAmount, 0, ',', '.') }}</span></strong></p>
                 <p class="mt-4 flex justify-between border-t border-slate-200 pt-4 text-base"><strong>Total</strong><strong>Rp <span data-quote-total>{{ number_format($quotation->total, 0, ',', '.') }}</span></strong></p>
             </div>
         </section>
@@ -356,24 +359,38 @@ $rentalPeriodLabels = [
 
         <section class="panel">
             <div class="panel-heading"><h2>Payment proofs</h2></div>
-            <div class="detail-form">
+            <div class="detail-form" style="display:grid;gap:20px;padding:20px 24px;">
                 <form action="{{ route('admin.quotations.payment-proofs.store', $quotation) }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <p class="subtext">Upload a JPG, PNG, WEBP, or PDF file (maximum 10 MB). An invoice is available only when the quotation is in a paid order status and at least one proof is present.</p>
-                    <input type="file" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf" required>
+                    <p class="subtext" style="margin:0 0 14px;line-height:1.6;">Upload a JPG, PNG, WEBP, or PDF file (maximum 10 MB). An invoice is available only when the quotation is in a paid order status and at least one proof is present.</p>
+                    <input type="file" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf" required style="display:block;max-width:100%;margin-bottom:14px;">
                     @error('proof')<p class="status-error">{{ $message }}</p>@enderror
                     <button type="submit" class="btn">Upload payment proof</button>
                 </form>
+                <div style="display:grid;gap:14px;">
                 @forelse ($quotation->paymentProofs as $proof)
-                <div class="detail-card">
-                    <a href="{{ route('quotation-payment-proofs.download', $proof) }}"><strong>{{ $proof->original_name }}</strong></a>
-                    <span class="subtext">{{ strtoupper($proof->source) }} · {{ $proof->uploader->name ?? 'Unknown uploader' }} · {{ $proof->created_at->format('d M Y H:i') }}</span>
-                </div>
+                <article style="display:grid;gap:12px;padding:16px;border:1px solid #dce5e2;border-radius:12px;background:#fbfdfc;">
+                    @if (str_starts_with($proof->mime_type, 'image/'))
+                    <a href="{{ route('quotation-payment-proofs.preview', $proof) }}" target="_blank" rel="noopener" aria-label="View {{ $proof->original_name }}" style="display:block;overflow:hidden;border:1px solid #e2e8f0;border-radius:9px;background:#f1f5f9;">
+                        <img src="{{ route('quotation-payment-proofs.preview', $proof) }}" alt="Payment proof: {{ $proof->original_name }}" loading="lazy" style="display:block;width:100%;max-height:260px;object-fit:contain;">
+                    </a>
+                    @else
+                    <div style="display:grid;min-height:90px;place-items:center;border:1px solid #e2e8f0;border-radius:9px;background:#f1f5f9;color:#0e6f65;font-size:28px;">
+                        <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+                    </div>
+                    @endif
+                    <div style="display:grid;gap:5px;min-width:0;">
+                        <a href="{{ route('quotation-payment-proofs.download', $proof) }}" style="overflow-wrap:anywhere;color:#173d46;font-weight:700;line-height:1.45;">{{ $proof->original_name }}</a>
+                        <span class="subtext">{{ strtoupper($proof->source) }} · {{ $proof->uploader->name ?? 'Unknown uploader' }} · {{ $proof->created_at->format('d M Y H:i') }}</span>
+                    </div>
+                    <a class="btn btn-light" href="{{ route('quotation-payment-proofs.download', $proof) }}" style="justify-self:start;">Download proof</a>
+                </article>
                 @empty
                 <p class="muted">No payment proof uploaded yet. The paid invoice stays hidden until a proof is uploaded and payment is confirmed.</p>
                 @endforelse
+                </div>
                 @if ($quotation->hasPaidInvoice())
-                <a class="btn btn-light" href="{{ route('quotations.preview.invoice', $quotation->public_token) }}" target="_blank" rel="noopener">Open paid invoice</a>
+                <a class="btn btn-light" href="{{ route('quotations.preview.invoice', $quotation->public_token) }}" target="_blank" rel="noopener" style="justify-self:start;">Open paid invoice</a>
                 @endif
             </div>
         </section>
@@ -452,6 +469,7 @@ $rentalPeriodLabels = [
             var subtotal = 0;
             var delivery = 0;
             var discount = 0;
+            var paid = 0;
 
             itemsContainer.querySelectorAll('[data-quote-item-row]').forEach(function (row) {
                 var removalInput = row.querySelector('[data-quote-remove-input]');
@@ -475,23 +493,27 @@ $rentalPeriodLabels = [
                     delivery += amount;
                 } else if (type === 'discount') {
                     discount += amount;
+                } else if (type === 'payment_received') {
+                    paid += amount;
                 } else {
                     subtotal += amount;
                 }
 
                 if (totalOutput) {
-                    totalOutput.textContent = (type === 'discount' ? '− ' : '') + 'Rp ' + formatPrice(amount);
+                    totalOutput.textContent = (type === 'discount' || type === 'payment_received' ? '− ' : '') + 'Rp ' + formatPrice(amount);
                 }
             });
 
             var subtotalOutput = document.querySelector('[data-quote-subtotal]');
             var deliveryOutput = document.querySelector('[data-quote-delivery]');
             var discountOutput = document.querySelector('[data-quote-discount]');
+            var paidOutput = document.querySelector('[data-quote-paid]');
             var totalOutput = document.querySelector('[data-quote-total]');
             if (subtotalOutput) subtotalOutput.textContent = formatPrice(subtotal);
             if (deliveryOutput) deliveryOutput.textContent = formatPrice(delivery);
             if (discountOutput) discountOutput.textContent = formatPrice(discount);
-            if (totalOutput) totalOutput.textContent = formatPrice(subtotal + delivery - discount);
+            if (paidOutput) paidOutput.textContent = formatPrice(paid);
+            if (totalOutput) totalOutput.textContent = formatPrice(subtotal + delivery - discount - paid);
         }
 
         function updateVariantOptions(requireVariant) {
@@ -544,7 +566,7 @@ $rentalPeriodLabels = [
             priceGroup.hidden = !needsDescription;
             priceInput.disabled = !needsDescription;
             priceInput.required = needsDescription;
-            discountHint.hidden = type !== 'discount';
+            discountHint.hidden = type !== 'discount' && type !== 'payment_received';
 
             if (!selectsProduct) {
                 productSelect.value = '';
@@ -583,6 +605,7 @@ $rentalPeriodLabels = [
                 service: 'SERVICE',
                 delivery: 'DELIVERY',
                 discount: 'DISCOUNT',
+                payment_received: 'DONE PAYMENT',
                 custom: 'CUSTOM CHARGE'
             };
 
@@ -627,9 +650,9 @@ $rentalPeriodLabels = [
             row.querySelector('[data-new-price-label]').htmlFor = rowPrice.id;
             rowPrice.name = 'new_items[' + index + '][unit_price]';
             rowPrice.value = Number.isFinite(unitPrice) ? unitPrice : 0;
-            row.querySelector('[data-new-price-label]').textContent = type === 'discount'
-                ? 'Discount amount (IDR)'
-                : 'Unit price (IDR)';
+            row.querySelector('[data-new-price-label]').textContent = type === 'payment_received'
+                ? 'Payment received (IDR)'
+                : type === 'discount' ? 'Discount amount (IDR)' : 'Unit price (IDR)';
 
             var skuLabel = row.querySelector('[data-new-item-sku]');
             var sku = selectsProduct ? (variantId ? variantOption.dataset.sku : productOption.dataset.sku) : '';
@@ -644,8 +667,10 @@ $rentalPeriodLabels = [
             } else if (variantId && variantOption.dataset.options) {
                 optionsLabel.textContent = variantOption.dataset.options;
                 optionsLabel.hidden = false;
-            } else if (type === 'discount') {
-                optionsLabel.textContent = 'Enter the discount as a positive amount.';
+            } else if (type === 'discount' || type === 'payment_received') {
+                optionsLabel.textContent = type === 'payment_received'
+                    ? 'Enter the payment received as a positive amount; it reduces the balance due.'
+                    : 'Enter the discount as a positive amount.';
                 optionsLabel.hidden = false;
             }
 

@@ -19,6 +19,7 @@ $rentalPeriod = $item['rental_period'] ?? 'daily';
                 <option value="service" {{ $itemType === 'service' ? 'selected' : '' }}>Service</option>
                 <option value="delivery" {{ $itemType === 'delivery' ? 'selected' : '' }}>Delivery fee</option>
                 <option value="discount" {{ $itemType === 'discount' ? 'selected' : '' }}>Discount</option>
+                <option value="payment_received" {{ $itemType === 'payment_received' ? 'selected' : '' }}>Done payment</option>
                 <option value="custom" {{ $itemType === 'custom' ? 'selected' : '' }}>Custom charge</option>
             </select>
         </div>

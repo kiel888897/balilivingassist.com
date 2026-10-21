@@ -151,7 +151,7 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
                         </td>
                         <td class="py-4 px-2 text-right">{{ $item->quantity }}</td>
                         <td class="py-4 px-2 text-right whitespace-nowrap">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                        <td class="py-4 pl-2 text-right whitespace-nowrap">Rp {{ number_format($item->line_total, 0, ',', '.') }}</td>
+                        <td class="py-4 pl-2 text-right whitespace-nowrap">{{ in_array($item->item_type, ['discount', 'payment_received'], true) ? '− ' : '' }}Rp {{ number_format(abs($item->line_total), 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -159,10 +159,14 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         </div>
 
         <section class="quotation-total-block print-avoid-break" aria-label="Quotation total">
+            @php($paymentReceivedAmount = $quotation->items->where('item_type', 'payment_received')->sum(function ($item) { return abs((float) $item->line_total); }))
             <div class="grid gap-2 text-sm">
                 <p class="flex justify-between gap-4"><span>Subtotal</span><strong class="whitespace-nowrap">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</strong></p>
                 <p class="flex justify-between gap-4"><span>Delivery</span><strong class="whitespace-nowrap">Rp {{ number_format($quotation->delivery_fee, 0, ',', '.') }}</strong></p>
                 <p class="flex justify-between gap-4"><span>Discount</span><strong class="whitespace-nowrap">− Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</strong></p>
+                @if ($paymentReceivedAmount > 0)
+                <p class="flex justify-between gap-4"><span>Done payment</span><strong class="whitespace-nowrap">− Rp {{ number_format($paymentReceivedAmount, 0, ',', '.') }}</strong></p>
+                @endif
             </div>
             <div class="quotation-grand-total">
                 <div><strong class="block text-sm uppercase tracking-wide">GRAND TOTAL</strong><span class="block text-xs italic">VAT excluded</span></div>

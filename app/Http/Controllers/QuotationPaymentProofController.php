@@ -69,17 +69,37 @@ class QuotationPaymentProofController extends Controller
 
     public function download(Request $request, QuotationPaymentProof $proof)
     {
-        $user = $request->user();
-        $isAdmin = $user->hasPermissionTo('quotes.manage');
-        $isOwner = $user->hasRole('customer')
-            && !$user->hasPermissionTo('admin.access')
-            && (int) $proof->quotation->user_id === (int) $user->id;
-        abort_unless($isAdmin || $isOwner, 403);
+        $this->authorizeProofAccess($request, $proof);
 
         abort_unless(Storage::disk('local')->exists($proof->path), 404);
         return Storage::disk('local')->download($proof->path, basename($proof->original_name), [
             'Content-Type' => $proof->mime_type,
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    public function preview(Request $request, QuotationPaymentProof $proof)
+    {
+        $this->authorizeProofAccess($request, $proof);
+        abort_unless(str_starts_with($proof->mime_type, 'image/'), 404);
+
+        $path = Storage::disk('local')->path($proof->path);
+        abort_unless(is_file($path), 404);
+
+        return response()->file($path, [
+            'Content-Type' => $proof->mime_type,
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    private function authorizeProofAccess(Request $request, QuotationPaymentProof $proof): void
+    {
+        $user = $request->user();
+        $isAdmin = $user->hasPermissionTo('quotes.manage');
+        $isOwner = $user->hasRole('customer')
+            && !$user->hasPermissionTo('admin.access')
+            && (int) $proof->quotation->user_id === (int) $user->id;
+        abort_unless($isAdmin || $isOwner, 403);
     }
 }

@@ -169,8 +169,8 @@ document.addEventListener('DOMContentLoaded', function () {
         period.disabled = !isRental;
         period.required = isRental;
         var serviceSelected = type === 'service' && service.value;
-        description.required = ['delivery', 'discount', 'custom'].indexOf(type) !== -1 || (type === 'service' && !serviceSelected);
-        quantity.readOnly = ['service', 'delivery', 'discount', 'custom'].indexOf(type) !== -1;
+        description.required = ['delivery', 'discount', 'payment_received', 'custom'].indexOf(type) !== -1 || (type === 'service' && !serviceSelected);
+        quantity.readOnly = ['service', 'delivery', 'discount', 'payment_received', 'custom'].indexOf(type) !== -1;
         if (quantity.readOnly) quantity.value = 1;
 
         if (usesProduct && selectedProduct && selectedProduct.value && !description.dataset.edited) {

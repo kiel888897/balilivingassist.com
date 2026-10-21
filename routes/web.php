@@ -120,6 +120,7 @@ Route::middleware('locale')->group(function () {
         Route::get('/account/quotations/{quotation}', [CustomerQuotationController::class, 'showQuotation'])->name('customer.quotations.show');
         Route::post('/account/quotations/{quotation}/payment-proofs', [QuotationPaymentProofController::class, 'storeCustomer'])->name('customer.quotations.payment-proofs.store');
         Route::get('/quotation-payment-proofs/{proof}', [QuotationPaymentProofController::class, 'download'])->name('quotation-payment-proofs.download');
+        Route::get('/quotation-payment-proofs/{proof}/preview', [QuotationPaymentProofController::class, 'preview'])->name('quotation-payment-proofs.preview');
         Route::get('/account/orders', [CustomerQuotationController::class, 'orders'])->name('customer.orders');
         Route::get('/account/orders/{quotation}', [CustomerQuotationController::class, 'showOrder'])->name('customer.orders.show');
 

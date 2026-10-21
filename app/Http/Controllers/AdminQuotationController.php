@@ -58,7 +58,7 @@ class AdminQuotationController extends Controller
             'payment_instructions' => ['nullable', 'string', 'max:2000'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
-            'items.*.type' => ['required', Rule::in(['product', 'rental', 'service', 'delivery', 'discount', 'custom'])],
+            'items.*.type' => ['required', Rule::in(['product', 'rental', 'service', 'delivery', 'discount', 'payment_received', 'custom'])],
             'items.*.product_id' => ['nullable', 'integer', 'exists:products,id'],
             'items.*.product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
             'items.*.service_id' => ['nullable', 'integer', Rule::exists('services', 'id')->where('is_active', true)],
@@ -106,6 +106,11 @@ class AdminQuotationController extends Controller
             if ($totals['discount_amount'] > $totals['subtotal'] + $totals['delivery_fee']) {
                 throw ValidationException::withMessages([
                     'items' => 'The discount cannot be greater than the quotation value.',
+                ]);
+            }
+            if ($totals['total'] < 0) {
+                throw ValidationException::withMessages([
+                    'items' => 'Discounts and payments received cannot be greater than the quotation value.',
                 ]);
             }
             if ($totals['total'] > 9999999999.99) {
@@ -182,7 +187,7 @@ class AdminQuotationController extends Controller
             'items.*.unit_price' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'items.*.remove' => ['nullable', 'boolean'],
             'items.*.rental_period' => ['nullable', Rule::in(['daily', 'weekly', 'monthly'])],
-            'new_item_type' => ['nullable', Rule::in(['product', 'service', 'delivery', 'discount', 'custom'])],
+            'new_item_type' => ['nullable', Rule::in(['product', 'service', 'delivery', 'discount', 'payment_received', 'custom'])],
             'new_product_id' => ['nullable', 'required_if:new_item_type,product', 'integer', 'exists:products,id'],
             'new_product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
             'new_service_id' => ['nullable', 'required_if:new_item_type,service', 'integer', 'exists:services,id'],
@@ -190,7 +195,7 @@ class AdminQuotationController extends Controller
             'new_quantity' => ['nullable', 'integer', 'min:1', 'max:99999'],
             'new_unit_price' => ['nullable', 'required_with:new_item_type', 'numeric', 'min:0', 'max:9999999999.99'],
             'new_items' => ['nullable', 'array', 'max:50'],
-            'new_items.*.type' => ['required', Rule::in(['product', 'rental', 'service', 'delivery', 'discount', 'custom'])],
+            'new_items.*.type' => ['required', Rule::in(['product', 'rental', 'service', 'delivery', 'discount', 'payment_received', 'custom'])],
             'new_items.*.product_id' => ['nullable', 'integer', 'exists:products,id'],
             'new_items.*.product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
             'new_items.*.description' => ['nullable', 'string', 'max:255'],
@@ -301,9 +306,9 @@ class AdminQuotationController extends Controller
             $quotation->status = $data['status'];
 
             $totals = $this->totals($quotation->items()->get());
-            if ($totals['discount_amount'] > $totals['subtotal'] + $totals['delivery_fee']) {
+            if ($totals['discount_amount'] > $totals['subtotal'] + $totals['delivery_fee'] || $totals['total'] < 0) {
                 throw ValidationException::withMessages([
-                    'items' => 'The discount cannot be greater than the quotation value.',
+                    'items' => 'Discounts and payments received cannot be greater than the quotation value.',
                 ]);
             }
             if ($totals['total'] > 9999999999.99) {
@@ -343,7 +348,7 @@ class AdminQuotationController extends Controller
             return;
         }
 
-        if (in_array($data['new_item_type'], ['custom', 'delivery', 'discount'], true) && empty($data['new_description'])) {
+        if (in_array($data['new_item_type'], ['custom', 'delivery', 'discount', 'payment_received'], true) && empty($data['new_description'])) {
             throw ValidationException::withMessages([
                 'new_description' => 'Enter a description for the new quotation item.',
             ]);
@@ -369,9 +374,9 @@ class AdminQuotationController extends Controller
             }
         }
 
-        if (in_array($data['new_item_type'], ['delivery', 'discount'], true) && (int) ($data['new_quantity'] ?? 1) !== 1) {
+        if (in_array($data['new_item_type'], ['delivery', 'discount', 'payment_received'], true) && (int) ($data['new_quantity'] ?? 1) !== 1) {
             throw ValidationException::withMessages([
-                'new_quantity' => 'Delivery and discount lines must have a quantity of one.',
+                'new_quantity' => 'Delivery, discount, and payment received lines must have a quantity of one.',
             ]);
         }
     }
@@ -450,7 +455,7 @@ class AdminQuotationController extends Controller
     private function addItem(Quotation $quotation, array $data): void
     {
         $type = $data['type'];
-        $quantity = in_array($type, ['delivery', 'discount', 'service', 'custom'], true)
+        $quantity = in_array($type, ['delivery', 'discount', 'payment_received', 'service', 'custom'], true)
             ? 1
             : (int) ($data['quantity'] ?? 1);
         $description = $data['description'] ?? null;
@@ -500,6 +505,8 @@ class AdminQuotationController extends Controller
             $description = $description ?: 'Delivery fee';
         } elseif ($type === 'discount') {
             $description = $description ?: 'Discount';
+        } elseif ($type === 'payment_received') {
+            $description = $description ?: 'Done payment';
         }
 
         $unitPrice = (float) $data['unit_price'];
@@ -523,7 +530,7 @@ class AdminQuotationController extends Controller
     {
         $amount = round($quantity * $unitPrice, 2);
 
-        return $type === 'discount' ? -$amount : $amount;
+        return in_array($type, ['discount', 'payment_received'], true) ? -$amount : $amount;
     }
 
     private function totals($items): array
@@ -531,12 +538,15 @@ class AdminQuotationController extends Controller
         $subtotal = 0;
         $deliveryFee = 0;
         $discountAmount = 0;
+        $paymentReceivedAmount = 0;
 
         foreach ($items as $item) {
             if ($item->item_type === 'delivery') {
                 $deliveryFee += (float) $item->line_total;
             } elseif ($item->item_type === 'discount') {
                 $discountAmount += abs((float) $item->line_total);
+            } elseif ($item->item_type === 'payment_received') {
+                $paymentReceivedAmount += abs((float) $item->line_total);
             } else {
                 $subtotal += (float) $item->line_total;
             }
@@ -545,12 +555,14 @@ class AdminQuotationController extends Controller
         $subtotal = round($subtotal, 2);
         $deliveryFee = round($deliveryFee, 2);
         $discountAmount = round($discountAmount, 2);
+        $paymentReceivedAmount = round($paymentReceivedAmount, 2);
 
         return [
             'subtotal' => $subtotal,
             'delivery_fee' => $deliveryFee,
             'discount_amount' => $discountAmount,
-            'total' => round($subtotal + $deliveryFee - $discountAmount, 2),
+            'payment_received_amount' => $paymentReceivedAmount,
+            'total' => round($subtotal + $deliveryFee - $discountAmount - $paymentReceivedAmount, 2),
         ];
     }
 

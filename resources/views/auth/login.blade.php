@@ -296,6 +296,7 @@
             <a class="back" href="{{ route('home') }}">Kembali ke situs BLA</a>
         </div>
     </main>
+@include('partials.password-toggle-script')
 </body>
 
 </html>

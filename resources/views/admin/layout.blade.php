@@ -1339,6 +1339,7 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/trix@2.1.15/dist/trix.umd.min.js"></script>
+    @include('partials.password-toggle-script')
     @stack('scripts')
     <script>
         document.querySelectorAll('[data-nav-group]').forEach(function (group) {
