@@ -73,6 +73,21 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         font-weight: 700;
         line-height: 1.35;
     }
+    .print-brand { display: none; }
+    .quotation-payment-signoff {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: end;
+        gap: 18px;
+        margin-top: 12px;
+    }
+    .quotation-payment-signoff .quotation-payment-box { margin-top: 0; }
+    .quotation-signoff { justify-self: end; width: min(100%, 260px); }
+    .quotation-signoff-brand { margin-top: 18px; }
+    @media (max-width: 640px) {
+        .quotation-payment-signoff { grid-template-columns: 1fr; }
+        .quotation-signoff { justify-self: start; }
+    }
     .paid-invoice-badge {
         display: inline-flex;
         align-items: center;
@@ -100,7 +115,9 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         .print-document { width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
         .print-card { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
         .quotation-total-block { width: 385px !important; max-width: 100% !important; }
-        .print-brand { display: flex !important; margin: 0 0 14px !important; padding-bottom: 10px !important; }
+        .print-brand { display: flex !important; margin: 0 0 14px !important; padding: 0 0 10px !important; }
+        .print-brand img { height: 58px !important; max-width: 185px !important; object-fit: contain !important; }
+        .print-brand-contact { margin-left: auto !important; }
         .print-title-row { gap: 12px !important; padding-bottom: 14px !important; }
         .print-customer-details { gap: 12px !important; padding-top: 14px !important; padding-bottom: 14px !important; }
         .quotation-items-wrap { overflow: visible !important; }
@@ -117,15 +134,15 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         .quotation-terms-grid > div { padding: 5px 8px !important; }
         .quotation-terms-grid h3 { font-size: 11px !important; }
         .quotation-price-note { margin-top: 5px !important; font-size: 12px !important; }
-        .quotation-payment-box { margin-top: 7px !important; padding: 9px 12px !important; }
-        .quotation-signoff { margin-top: 8px !important; }
-        .quotation-signoff-brand { margin-top: 20px !important; }
+        .quotation-payment-signoff { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 16px !important; margin-top: 10px !important; }
+        .quotation-payment-box { margin-top: 0 !important; padding: 9px 12px !important; }
+        .quotation-signoff { justify-self: end !important; width: min(100%, 250px) !important; margin-top: 0 !important; }
+        .quotation-signoff-brand { margin-top: 18px !important; }
         .quotation-customer-note { margin-top: 12px !important; padding-top: 12px !important; }
         .quotation-document-footer { display: none !important; }
         a { color: inherit !important; text-decoration: none !important; }
         .print-avoid-break { break-inside: avoid; page-break-inside: avoid; }
     }
-    .print-brand { display: none; }
 </style>
 @endpush
 
@@ -145,8 +162,14 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
     </div>
 
     <article class="print-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-        <header class="print-brand mb-8 items-center border-b border-slate-200 pb-5">
+        <header class="print-brand mb-8 w-full items-center justify-between border-b border-slate-200 pb-5">
             <img src="{{ asset('images/bla-logos.png') }}" alt="{{ __('site.brand') }}" style="height:62px;width:auto;">
+            <div class="print-brand-contact text-right text-xs leading-5 text-slate-600">
+                <p class="font-display text-xl font-extrabold leading-6 text-bla-800">BALI LIVING ASSIST</p>
+                <p>Denpasar, Bali, Indonesia</p>
+                <p><a href="mailto:hello@balilivingassist.com">hello@balilivingassist.com</a></p>
+                <p>Phone / WhatsApp: +62 851-7332-3293</p>
+            </div>
         </header>
         <div class="print-title-row flex flex-wrap items-start justify-between gap-5 border-b border-slate-200 pb-6">
             <div>
@@ -233,18 +256,21 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
             <p>Prices stated above are subject to change without prior notice.</p>
         </section>
 
-        @if (!$isInvoice && $quotation->payment_instructions)
-        <section class="print-avoid-break quotation-payment-box">
-            @foreach (preg_split('/\\r\\n|\\r|\\n/', $quotation->payment_instructions) as $instructionLine)
-            <p>{{ $instructionLine }}</p>
-            @endforeach
-        </section>
-        @endif
-
-        <section class="quotation-signoff print-avoid-break mt-4 text-sm leading-6 text-slate-700">
-            <p>Best regards,</p>
-            <p class="quotation-signoff-brand mt-12 font-extrabold text-slate-900">Bali Living Assist</p>
-            <p class="text-xs">+62 851-7332-3293</p>
+        <section class="quotation-payment-signoff print-avoid-break">
+            @if (!$isInvoice && $quotation->payment_instructions)
+            <div class="quotation-payment-box">
+                @foreach (preg_split('/\\r\\n|\\r|\\n/', $quotation->payment_instructions) as $instructionLine)
+                <p>{{ $instructionLine }}</p>
+                @endforeach
+            </div>
+            @else
+            <div aria-hidden="true"></div>
+            @endif
+            <div class="quotation-signoff text-sm leading-6 text-slate-700">
+                <p>Best regards,</p>
+                <p class="quotation-signoff-brand font-extrabold text-slate-900">Bali Living Assist</p>
+                <p class="text-xs">+62 851-7332-3293</p>
+            </div>
         </section>
         @if ($quotation->customer_note)
         <section class="quotation-customer-note print-avoid-break mt-6 border-t border-slate-200 pt-5">
