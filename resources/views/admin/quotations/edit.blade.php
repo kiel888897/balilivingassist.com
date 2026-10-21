@@ -413,12 +413,13 @@ $rentalPeriodLabels = [
             </div>
         </section>
 
+        @if ($quotation->isOrder())
         <section class="panel">
             <div class="panel-heading"><h2>Payment proofs</h2></div>
             <div class="detail-form" style="display:grid;gap:20px;padding:20px 24px;">
                 <form action="{{ route('admin.quotations.payment-proofs.store', $quotation) }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <p class="subtext" style="margin:0 0 14px;line-height:1.6;">Upload a JPG, PNG, WEBP, or PDF file (maximum 10 MB). An invoice is available only when the quotation is in a paid order status and at least one proof is present.</p>
+                    <p class="subtext" style="margin:0 0 14px;line-height:1.6;">Upload a JPG, PNG, WEBP, or PDF file (maximum 10 MB). A paid invoice is available after payment is confirmed and at least one proof is present.</p>
                     <input type="file" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf" required style="display:block;max-width:100%;margin-bottom:14px;">
                     @error('proof')<p class="status-error">{{ $message }}</p>@enderror
                     <button type="submit" class="btn">Upload payment proof</button>
@@ -450,6 +451,7 @@ $rentalPeriodLabels = [
                 @endif
             </div>
         </section>
+        @endif
 
         <section class="panel">
             <div class="panel-heading"><h2>Revision history</h2></div>

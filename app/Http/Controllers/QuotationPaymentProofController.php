@@ -16,13 +16,15 @@ class QuotationPaymentProofController extends Controller
     {
         abort_unless(Auth::check() && Auth::user()->hasRole('customer') && !Auth::user()->hasPermissionTo('admin.access'), 403);
         abort_unless((int) $quotation->user_id === (int) $request->user()->id, 404);
-        abort_unless($quotation->status === 'payment_requested', 403);
+        abort_unless($quotation->isOrder() && $quotation->status === 'payment_requested', 403);
 
         return $this->store($request, $quotation, 'customer');
     }
 
     public function storeAdmin(Request $request, Quotation $quotation)
     {
+        abort_unless($quotation->isOrder(), 422, 'Payment proofs can only be uploaded to an order.');
+
         return $this->store($request, $quotation, 'admin');
     }
 
@@ -45,7 +47,7 @@ class QuotationPaymentProofController extends Controller
                     'size' => $file->getSize(),
                 ]);
 
-                if ($quotation->is_order && $quotation->status === 'payment_requested') {
+                if ($quotation->isOrder() && $quotation->status === 'payment_requested') {
                     $quotation->status = 'payment_review';
                     $quotation->payment_rejection_reason = null;
                     $quotation->save();
