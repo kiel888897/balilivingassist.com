@@ -62,6 +62,7 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         background: #f4f7f7;
     }
     .quotation-terms-grid > div { padding: 6px 9px; }
+    .quotation-terms-grid h3 { font-size: 11px; }
     .quotation-payment-box {
         width: min(100%, 370px);
         margin-top: 10px;
@@ -72,20 +73,57 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         font-weight: 700;
         line-height: 1.35;
     }
+    .paid-invoice-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid #a7e1c1;
+        border-radius: 999px;
+        background: #effaf3;
+        color: #17613c;
+        padding: 5px 10px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+    .quotation-total-discount strong { color: #9f3b31; }
+    .quotation-total-paid strong { color: #17613c; }
     @media (max-width: 640px) {
         .quotation-terms-grid { grid-template-columns: 1fr; }
     }
     @media print {
-        @page { size: A4; margin: 14mm; }
-        body { background: #fff !important; color: #111827 !important; }
+        @page { size: A4; margin: 10mm; }
+        body { background: #fff !important; color: #111827 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         body > header, body > footer, .no-print { display: none !important; }
         #main-content { margin: 0 !important; padding: 0 !important; }
         .print-document { width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
         .print-card { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
         .quotation-total-block { width: 385px !important; max-width: 100% !important; }
-        .print-brand { display: flex !important; }
+        .print-brand { display: flex !important; margin: 0 0 14px !important; padding-bottom: 10px !important; }
+        .print-title-row { gap: 12px !important; padding-bottom: 14px !important; }
+        .print-customer-details { gap: 12px !important; padding-top: 14px !important; padding-bottom: 14px !important; }
+        .quotation-items-wrap { overflow: visible !important; }
+        .quotation-items { width: 100%; table-layout: fixed; }
+        .quotation-items thead { display: table-header-group; }
+        .quotation-items tfoot { display: table-footer-group; }
+        .quotation-items tr { break-inside: avoid; page-break-inside: avoid; }
+        .quotation-items th, .quotation-items td { padding-top: 7px !important; padding-bottom: 7px !important; }
+        .quotation-total-block { width: 385px !important; max-width: 100% !important; margin-top: 12px !important; }
+        .quotation-total-block > .grid { gap: 4px !important; }
+        .quotation-total-block .quotation-grand-total { margin-top: 7px !important; padding: 7px 10px !important; }
+        .quotation-terms-section { margin-top: 10px !important; }
+        .quotation-terms-grid { margin-top: 4px !important; font-size: 13px !important; line-height: 1.45 !important; }
+        .quotation-terms-grid > div { padding: 5px 8px !important; }
+        .quotation-terms-grid h3 { font-size: 11px !important; }
+        .quotation-price-note { margin-top: 5px !important; font-size: 12px !important; }
+        .quotation-payment-box { margin-top: 7px !important; padding: 9px 12px !important; }
+        .quotation-signoff { margin-top: 8px !important; }
+        .quotation-signoff-brand { margin-top: 20px !important; }
+        .quotation-customer-note { margin-top: 12px !important; padding-top: 12px !important; }
+        .quotation-document-footer { display: none !important; }
         a { color: inherit !important; text-decoration: none !important; }
-        .print-avoid-break { break-inside: avoid; }
+        .print-avoid-break { break-inside: avoid; page-break-inside: avoid; }
     }
     .print-brand { display: none; }
 </style>
@@ -107,28 +145,26 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
     </div>
 
     <article class="print-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-        <header class="print-brand mb-8 items-center justify-between border-b border-slate-200 pb-5">
+        <header class="print-brand mb-8 items-center border-b border-slate-200 pb-5">
             <img src="{{ asset('images/bla-logos.png') }}" alt="{{ __('site.brand') }}" style="height:62px;width:auto;">
-            <div class="text-right text-sm text-slate-600">
-                <strong class="block text-lg text-slate-900">{{ $documentTitle }}</strong>
-                <span>{{ $quotation->quote_number }}</span>
-            </div>
         </header>
-        <div class="flex flex-wrap items-start justify-between gap-5 border-b border-slate-200 pb-6">
+        <div class="print-title-row flex flex-wrap items-start justify-between gap-5 border-b border-slate-200 pb-6">
             <div>
                 <p class="text-xs font-extrabold uppercase tracking-[.16em] text-bla-700">{{ $documentTitle }}</p>
                 <h1 class="mt-2 font-display text-3xl font-extrabold text-slate-900">{{ $quotation->quote_number }}</h1>
             </div>
             <div class="text-right">
-                <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-700">{{ strtoupper(str_replace('_', ' ', $quotation->status)) }}</span>
                 @if ($isInvoice)
+                <span class="paid-invoice-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Paid</span>
                 <p class="mt-2 text-sm font-semibold text-green-700">Payment confirmed{{ $quotation->payment_confirmed_at ? ' · ' . $quotation->payment_confirmed_at->format('d M Y') : '' }}</p>
+                @else
+                <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-700">{{ strtoupper(str_replace('_', ' ', $quotation->status)) }}</span>
                 @endif
-                <p class="mt-2 text-sm text-slate-500">{{ $quotation->created_at->format('d M Y') }}</p>
+                <p class="mt-2 text-sm text-slate-500">{{ $isInvoice ? 'Quotation date' : 'Issued' }}: {{ $quotation->created_at->format('d M Y') }}</p>
             </div>
         </div>
 
-        <section class="print-avoid-break grid gap-5 border-b border-slate-200 py-6 sm:grid-cols-2">
+        <section class="print-customer-details print-avoid-break grid gap-5 border-b border-slate-200 py-6 sm:grid-cols-2">
             <div>
                 <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Customer</h2>
                 <p class="mt-2 font-bold text-slate-900">{{ $quotation->customer_name }}</p>
@@ -140,8 +176,8 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
             </div>
         </section>
 
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse text-left text-sm">
+        <div class="quotation-items-wrap overflow-x-auto">
+            <table class="quotation-items w-full border-collapse text-left text-sm">
                 <thead><tr class="border-b border-slate-300 text-xs uppercase tracking-wider text-slate-500"><th class="py-3 pr-3">Item</th><th class="py-3 px-2 text-right">Qty</th><th class="py-3 px-2 text-right">Unit price</th><th class="py-3 pl-2 text-right">Amount</th></tr></thead>
                 <tbody>
                     @foreach ($quotation->items as $item)
@@ -151,7 +187,7 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
                         </td>
                         <td class="py-4 px-2 text-right">{{ $item->quantity }}</td>
                         <td class="py-4 px-2 text-right whitespace-nowrap">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                        <td class="py-4 pl-2 text-right whitespace-nowrap">{{ in_array($item->item_type, ['discount', 'payment_received'], true) ? '− ' : '' }}Rp {{ number_format(abs($item->line_total), 0, ',', '.') }}</td>
+                        <td class="py-4 pl-2 text-right whitespace-nowrap">{{ in_array($item->item_type, ['discount', 'payment_received'], true) ? '- ' : '' }}Rp {{ number_format(abs($item->line_total), 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -167,9 +203,9 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
             <div class="grid gap-2 text-sm">
                 <p class="flex justify-between gap-4"><span>Subtotal</span><strong class="whitespace-nowrap">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</strong></p>
                 <p class="flex justify-between gap-4"><span>Delivery</span><strong class="whitespace-nowrap">Rp {{ number_format($quotation->delivery_fee, 0, ',', '.') }}</strong></p>
-                <p class="flex justify-between gap-4"><span>Discount</span><strong class="whitespace-nowrap">− Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</strong></p>
+                <p class="quotation-total-discount flex justify-between gap-4"><span>Discount</span><strong class="whitespace-nowrap">- Rp {{ number_format($quotation->discount_amount, 0, ',', '.') }}</strong></p>
                 @if ($paymentReceivedAmount > 0)
-                <p class="flex justify-between gap-4"><span>Done payment</span><strong class="whitespace-nowrap">− Rp {{ number_format($paymentReceivedAmount, 0, ',', '.') }}</strong></p>
+                <p class="quotation-total-paid flex justify-between gap-4"><span>Done payment</span><strong class="whitespace-nowrap">- Rp {{ number_format($paymentReceivedAmount, 0, ',', '.') }}</strong></p>
                 @endif
             </div>
             <div class="quotation-grand-total">
@@ -177,7 +213,7 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
                 <strong class="text-xl">Rp {{ number_format($quotation->total, 0, ',', '.') }}</strong>
             </div>
         </section>
-        <section class="print-avoid-break mt-4">
+        <section class="quotation-terms-section print-avoid-break mt-4">
             <h2 class="font-display text-xs font-extrabold uppercase tracking-wider text-bla-700">Terms &amp; Conditions</h2>
             <div class="quotation-terms-grid text-xs leading-5 text-slate-700">
                 <div>
@@ -193,7 +229,7 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
             </div>
         </section>
 
-        <section class="print-avoid-break mt-2 text-xs italic leading-5 text-slate-500">
+        <section class="quotation-price-note print-avoid-break mt-2 text-xs italic leading-5 text-slate-500">
             <p>Prices stated above are subject to change without prior notice.</p>
         </section>
 
@@ -205,18 +241,18 @@ $publicLink = $isInvoice ? route('quotations.preview.invoice', $quotation->publi
         </section>
         @endif
 
-        <section class="print-avoid-break mt-4 text-sm leading-6 text-slate-700">
+        <section class="quotation-signoff print-avoid-break mt-4 text-sm leading-6 text-slate-700">
             <p>Best regards,</p>
-            <p class="mt-12 font-extrabold text-slate-900">Bali Living Assist</p>
+            <p class="quotation-signoff-brand mt-12 font-extrabold text-slate-900">Bali Living Assist</p>
             <p class="text-xs">+62 851-7332-3293</p>
         </section>
         @if ($quotation->customer_note)
-        <section class="print-avoid-break mt-6 border-t border-slate-200 pt-5">
+        <section class="quotation-customer-note print-avoid-break mt-6 border-t border-slate-200 pt-5">
             <h2 class="font-bold text-slate-900">Customer note</h2>
             <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">{{ $quotation->customer_note }}</p>
         </section>
         @endif
-        <footer class="mt-9 border-t border-slate-200 pt-4 text-center text-xs text-slate-500">{{ config('app.name') }} · {{ config('app.url') }}</footer>
+        <footer class="quotation-document-footer mt-9 border-t border-slate-200 pt-4 text-center text-xs text-slate-500">{{ config('app.name') }} · {{ config('app.url') }}</footer>
     </article>
 </main>
 @endsection
