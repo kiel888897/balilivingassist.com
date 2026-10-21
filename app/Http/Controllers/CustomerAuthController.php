@@ -98,8 +98,9 @@ class CustomerAuthController extends Controller
 
         return view('customer.account', [
             'user' => $user,
-            'quotationCount' => $user->quotations()->whereNotIn('status', \App\Models\Quotation::ORDER_STATUSES)->count(),
-            'orderCount' => $user->quotations()->whereIn('status', \App\Models\Quotation::ORDER_STATUSES)->count(),
+            'quotationCount' => $user->quotations()->where('is_order', false)->count(),
+            'orderCount' => $user->quotations()->where(function ($query) { $query->where('is_order', true)->orWhereIn('status', \App\Models\Quotation::ORDER_STATUSES); })->count(),
+            'pendingQuotationCount' => $user->quotations()->where('status', 'waiting_customer')->count(),
         ]);
     }
 

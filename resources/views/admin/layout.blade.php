@@ -1254,7 +1254,8 @@
             <nav class="side-nav" id="admin-sidebar-navigation" aria-label="Admin navigation">
                 <a class="{{ request()->routeIs('admin') ? 'active' : '' }}" href="{{ route('admin') }}" aria-label="Dashboard" title="Dashboard"><i class="fa-solid fa-gauge-high w-5 text-center" aria-hidden="true"></i><span class="nav-text">Dashboard</span></a>
                 @php($navUser = Auth::user())
-                @php($newQuotationCount = $navUser->hasPermissionTo('quotes.manage') ? \App\Models\Quotation::where('status', 'new')->count() : 0)
+                @php($newQuotationCount = $navUser->hasPermissionTo('quotes.manage') ? \App\Models\Quotation::whereIn('status', ['waiting_admin', 'changes_requested'])->count() : 0)
+                @php($paymentReviewCount = $navUser->hasPermissionTo('quotes.manage') ? \App\Models\Quotation::where('status', 'payment_review')->count() : 0)
                 @php($navGroups = [
                     ['label' => 'Products', 'icon' => 'fa-boxes-stacked', 'items' => [
                         ['label' => 'Product list', 'icon' => 'fa-boxes-stacked', 'route' => 'admin.products', 'match' => 'admin.products*', 'can' => 'catalog.view'],
@@ -1265,15 +1266,25 @@
                         ['label' => 'Service list', 'icon' => 'fa-screwdriver-wrench', 'route' => 'admin.services', 'match' => 'admin.services*', 'can' => 'services.manage'],
                         ['label' => 'Service areas', 'icon' => 'fa-layer-group', 'route' => 'admin.service-areas', 'match' => 'admin.service-areas*', 'can' => 'services.manage'],
                     ]],
-                    ['label' => 'Orders', 'icon' => 'fa-file-invoice', 'badge' => $newQuotationCount, 'items' => [
-                        ['label' => 'Quotations', 'icon' => 'fa-file-invoice', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'badge' => $newQuotationCount],
-                        ['label' => 'Delivery', 'icon' => 'fa-truck-fast', 'route' => 'admin.delivery', 'match' => 'admin.delivery*', 'can' => 'delivery.manage'],
+                    ['label' => 'Quotations', 'icon' => 'fa-file-lines', 'items' => [
+                        ['label' => 'All quotations', 'icon' => 'fa-layer-group', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage'],
+                        ['label' => 'Waiting for admin', 'icon' => 'fa-inbox', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'waiting_admin', 'badge' => $newQuotationCount],
+                        ['label' => 'Draft', 'icon' => 'fa-file-pen', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'draft'],
+                        ['label' => 'Waiting for customer', 'icon' => 'fa-hourglass-half', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'waiting_customer'],
+                        ['label' => 'Rejected', 'icon' => 'fa-circle-xmark', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'rejected'],
+                    ]],
+                    ['label' => 'Orders', 'icon' => 'fa-box-open', 'items' => [
+                        ['label' => 'All orders', 'icon' => 'fa-layer-group', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'orders'],
+                        ['label' => 'Awaiting payment', 'icon' => 'fa-wallet', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'awaiting_payment'],
+                        ['label' => 'Payment proof review', 'icon' => 'fa-receipt', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'payment_review', 'badge' => $paymentReviewCount],
+                        ['label' => 'Paid', 'icon' => 'fa-circle-check', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'paid'],
+                        ['label' => 'Cancelled', 'icon' => 'fa-ban', 'route' => 'admin.quotations', 'match' => 'admin.quotations*', 'can' => 'quotes.manage', 'query' => 'cancelled'],
                     ]],
                 ])
                 @foreach ($navGroups as $group)
                 @php($items = array_values(array_filter($group['items'], fn ($item) => $navUser->hasPermissionTo($item['can']))))
                 @if (count($items))
-                @php($groupOpen = collect($items)->contains(fn ($item) => request()->routeIs($item['match'])))
+                @php($groupOpen = request()->routeIs('admin.quotations') && collect($items)->contains(fn ($item) => request('status', 'all') === ($item['query'] ?? 'all')))
                 <div class="nav-group {{ $groupOpen ? 'is-open' : '' }}" data-nav-group>
                     <button class="nav-group-toggle" type="button" aria-expanded="{{ $groupOpen ? 'true' : 'false' }}">
                         <i class="fa-solid {{ $group['icon'] }} w-5 text-center" aria-hidden="true"></i>
@@ -1283,7 +1294,7 @@
                     </button>
                     <div class="nav-sub">
                         @foreach ($items as $item)
-                        <a class="{{ request()->routeIs($item['match']) ? 'active' : '' }}" href="{{ route($item['route']) }}" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
+                        <a class="{{ request()->routeIs('admin.quotations') && request('status', 'all') === ($item['query'] ?? 'all') ? 'active' : '' }}" href="{{ route($item['route'], !empty($item['query']) ? ['status' => $item['query']] : []) }}" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
                             <i class="fa-solid {{ $item['icon'] }} w-5 text-center" aria-hidden="true"></i>
                             <span class="nav-text">{{ $item['label'] }}</span>
                             @if (!empty($item['badge']))<span class="nav-badge">{{ $item['badge'] }}</span>@endif
@@ -1293,6 +1304,9 @@
                 </div>
                 @endif
                 @endforeach
+                @if ($navUser->hasPermissionTo('delivery.manage'))
+                <a class="{{ request()->routeIs('admin.delivery*') ? 'active' : '' }}" href="{{ route('admin.delivery') }}" aria-label="Delivery Price" title="Delivery Price"><i class="fa-solid fa-truck-fast w-5 text-center" aria-hidden="true"></i><span class="nav-text">Delivery Price</span></a>
+                @endif
                 @if ($navUser->hasPermissionTo('projects.manage'))
                 <a class="{{ request()->routeIs('admin.portfolio*') ? 'active' : '' }}" href="{{ route('admin.portfolio') }}" aria-label="Portfolio" title="Portfolio"><i class="fa-solid fa-images w-5 text-center" aria-hidden="true"></i><span class="nav-text">Portfolio</span></a>
                 @endif

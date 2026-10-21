@@ -29,6 +29,22 @@ $whatsappUrl = 'https://wa.me/' . preg_replace('/\D+/', '', config('bla.contact.
             <span class="rounded-full bg-bla-50 px-4 py-2 text-sm font-bold text-bla-700">{{ __('site.quotation.status_labels.' . $quotation->status) }}</span>
         </div>
 
+        @if (!$quotation->isOrder() && $quotation->status === 'waiting_customer')
+        <section class="mt-6 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm md:p-6">
+            <div class="flex items-start gap-4">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-800"><i class="fa-solid fa-bell" aria-hidden="true"></i></span>
+                <div><h2 class="font-display text-lg font-extrabold text-slate-900">Your decision is needed</h2><p class="mt-1 text-sm leading-6 text-slate-600">Review the items and total below. Accept to let the admin prepare an order, reject the quotation, or request a change.</p></div>
+            </div>
+            <div class="mt-5 grid gap-3 sm:grid-cols-3">
+                <form action="{{ route('customer.quotations.respond', $quotation) }}" method="POST">@csrf<input type="hidden" name="action" value="accept"><button class="w-full rounded-xl bg-bla-700 px-4 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-bla-800" type="submit"><i class="fa-solid fa-check mr-2" aria-hidden="true"></i>Accept quotation</button></form>
+                <form action="{{ route('customer.quotations.respond', $quotation) }}" method="POST" class="space-y-2">@csrf<input type="hidden" name="action" value="request_changes"><input name="note" required maxlength="2000" placeholder="What should be changed?" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><button class="w-full rounded-xl border border-bla-200 bg-white px-4 py-3 text-sm font-bold text-bla-800 hover:bg-bla-50" type="submit">Request changes</button></form>
+                <form action="{{ route('customer.quotations.respond', $quotation) }}" method="POST" class="space-y-2">@csrf<input type="hidden" name="action" value="reject"><input name="note" required maxlength="2000" placeholder="Reason for rejecting" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><button class="w-full rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800 hover:bg-rose-100" type="submit">Reject quotation</button></form>
+            </div>
+        </section>
+        @elseif ($quotation->decision_note)
+        <p class="mt-5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"><strong>Latest note:</strong> {{ $quotation->decision_note }}</p>
+        @endif
+
         <div class="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div class="space-y-6">
                 <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -64,13 +80,13 @@ $whatsappUrl = 'https://wa.me/' . preg_replace('/\D+/', '', config('bla.contact.
                     </div>
                 </section>
 
-                @if ($quotation->admin_note || ($quotation->status === 'payment_requested' && $quotation->payment_instructions))
+                @if ($quotation->admin_note || (in_array($quotation->status, ['payment_requested', 'payment_review']) && $quotation->payment_instructions))
                 <section class="rounded-2xl border border-slate-200 bg-white p-5">
                     @if ($quotation->admin_note)
                     <h2 class="font-display font-extrabold text-bla-900">{{ __('site.quotation.admin_note') }}</h2>
                     <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $quotation->admin_note }}</p>
                     @endif
-                    @if ($quotation->status === 'payment_requested' && $quotation->payment_instructions)
+                    @if (in_array($quotation->status, ['payment_requested', 'payment_review']) && $quotation->payment_instructions)
                     <h2 class="mt-5 font-display font-extrabold text-bla-900">{{ __('site.quotation.payment_instructions') }}</h2>
                     <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $quotation->payment_instructions }}</p>
                     @endif
@@ -80,6 +96,7 @@ $whatsappUrl = 'https://wa.me/' . preg_replace('/\D+/', '', config('bla.contact.
                 <section class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
                     <h2 class="font-display font-extrabold text-amber-950">Upload payment proof</h2>
                     <p class="mt-2 text-sm leading-6 text-amber-900">Upload a JPG, PNG, WEBP, or PDF file (maximum 10 MB). The invoice becomes available after payment is confirmed by the admin.</p>
+                    @if ($quotation->payment_rejection_reason)<p class="mt-3 rounded-lg border border-rose-200 bg-white p-3 text-sm text-rose-800"><strong>Previous proof was rejected:</strong> {{ $quotation->payment_rejection_reason }}</p>@endif
                     <form class="mt-4 space-y-3" action="{{ route('customer.quotations.payment-proofs.store', $quotation) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="file" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf" required class="block w-full rounded-lg border border-amber-300 bg-white p-2 text-sm">

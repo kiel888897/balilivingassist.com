@@ -1,5 +1,6 @@
 <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
     @php($cartQuantity = Auth::check() && Auth::user()->hasRole('customer') ? Auth::user()->cartItems()->sum('quantity') : 0)
+    @php($pendingQuotationCount = Auth::check() && Auth::user()->hasRole('customer') && !Auth::user()->hasPermissionTo('admin.access') ? Auth::user()->quotations()->where('status', 'waiting_customer')->count() : 0)
     <div class="mx-auto flex min-h-[76px] w-[min(1200px,calc(100%-32px))] items-center justify-between gap-4">
         <a href="{{ route('home') }}" class="shrink-0" aria-label="{{ __('site.brand') }} — {{ __('site.common.home') }}">
             <img src="{{ asset('images/bla-logos.png') }}" width="230" height="50" alt="{{ __('site.brand') }}" class="h-12 w-auto">
@@ -20,7 +21,7 @@
                 <a class="rounded-md px-2 py-1 {{ app()->getLocale() === 'id' ? 'bg-bla-600 text-white' : 'text-slate-500 hover:bg-slate-100' }}" href="{{ route('language.switch', ['locale' => 'id', 'next' => request()->getRequestUri()]) }}" lang="id">ID</a>
             </div>
             @if (Auth::check() && Auth::user()->hasRole('customer'))
-            <a href="{{ route('customer.account') }}" class="font-semibold text-slate-600 hover:text-bla-700">{{ __('site.nav.account') }}</a>
+            <a href="{{ route('customer.account') }}" class="relative font-semibold text-slate-600 hover:text-bla-700">{{ __('site.nav.account') }}@if ($pendingQuotationCount)<span class="ml-1 inline-grid h-5 min-w-5 place-items-center rounded-full bg-orange-600 px-1 text-[10px] font-extrabold text-white" aria-label="{{ $pendingQuotationCount }} quotations need your response">{{ $pendingQuotationCount > 99 ? '99+' : $pendingQuotationCount }}</span>@endif</a>
             @else
             <a href="{{ route('login') }}" class="font-semibold text-slate-600 hover:text-bla-700">{{ __('site.nav.login') }}</a>
             @endif
@@ -60,7 +61,7 @@
             <div class="mt-2 flex items-center justify-between border-t border-slate-100 pt-4">
                 <div class="flex items-center gap-5">
                     @if (Auth::check() && Auth::user()->hasRole('customer'))
-                    <a href="{{ route('customer.account') }}" class="font-semibold text-bla-700">{{ __('site.nav.account') }}</a>
+                    <a href="{{ route('customer.account') }}" class="font-semibold text-bla-700">{{ __('site.nav.account') }}@if ($pendingQuotationCount)<span class="ml-1 inline-grid h-5 min-w-5 place-items-center rounded-full bg-orange-600 px-1 text-[10px] font-extrabold text-white">{{ $pendingQuotationCount > 99 ? '99+' : $pendingQuotationCount }}</span>@endif</a>
                     @else
                     <a href="{{ route('login') }}" class="font-semibold text-bla-700">{{ __('site.nav.login') }}</a>
                     @endif

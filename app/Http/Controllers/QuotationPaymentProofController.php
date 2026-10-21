@@ -45,13 +45,19 @@ class QuotationPaymentProofController extends Controller
                     'size' => $file->getSize(),
                 ]);
 
+                if ($quotation->is_order && $quotation->status === 'payment_requested') {
+                    $quotation->status = 'payment_review';
+                    $quotation->payment_rejection_reason = null;
+                    $quotation->save();
+                }
+
                 QuotationRevision::create([
                     'quotation_id' => $quotation->id,
                     'user_id' => $request->user()->id,
                     'event' => 'payment_proof_uploaded',
                     'snapshot' => [
                         'quote_number' => $quotation->quote_number,
-                        'status' => $quotation->status,
+                        'status' => $quotation->fresh()->status,
                         'payment_proof_id' => $proof->id,
                         'original_name' => $proof->original_name,
                         'source' => $source,

@@ -19,17 +19,24 @@ class Quotation extends Model
     }
 
     public const ORDER_STATUSES = [
+        'payment_requested',
+        'payment_review',
         'payment_confirmed',
         'processing',
         'shipped',
         'completed',
+        'cancelled',
     ];
 
     public const STATUSES = [
-        'new',
-        'under_review',
-        'needs_information',
+        'draft',
+        'waiting_admin',
+        'waiting_customer',
+        'accepted',
+        'rejected',
+        'changes_requested',
         'payment_requested',
+        'payment_review',
         'payment_confirmed',
         'processing',
         'shipped',
@@ -48,6 +55,9 @@ class Quotation extends Model
         'admin_note',
         'payment_instructions',
         'status',
+        'is_order',
+        'decision_note',
+        'payment_rejection_reason',
         'subtotal',
         'delivery_fee',
         'discount_amount',
@@ -57,6 +67,7 @@ class Quotation extends Model
     ];
 
     protected $casts = [
+        'is_order' => 'boolean',
         'subtotal' => 'decimal:2',
         'delivery_fee' => 'decimal:2',
         'discount_amount' => 'decimal:2',
@@ -87,12 +98,12 @@ class Quotation extends Model
 
     public function hasPaidInvoice(): bool
     {
-        return in_array($this->status, self::ORDER_STATUSES, true)
+        return in_array($this->status, ['payment_confirmed', 'processing', 'shipped', 'completed'], true)
             && $this->paymentProofs()->exists();
     }
 
     public function isOrder(): bool
     {
-        return in_array($this->status, self::ORDER_STATUSES, true);
+        return $this->is_order || in_array($this->status, self::ORDER_STATUSES, true);
     }
 }

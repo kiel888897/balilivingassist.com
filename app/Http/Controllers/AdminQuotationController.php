@@ -19,11 +19,45 @@ class AdminQuotationController extends Controller
 {
     private const DEFAULT_PAYMENT_INSTRUCTIONS = "Bank : BCA\nAccount Number : 0402566076\nName : ANTONIO DODI HERYANTO SIMANJUNTAK";
 
-    public function index()
+    public function index(Request $request)
     {
+        $filter = $request->query('status', 'all');
+        $query = Quotation::with('customer')->withCount('items');
+        if ($filter === 'orders') {
+            $query->where(function ($q) { $q->where('is_order', true)->orWhereIn('status', ['payment_requested', 'payment_review', 'payment_confirmed', 'processing', 'shipped', 'completed']); });
+        } elseif ($filter === 'payment_review') {
+            $query->where('status', 'payment_review');
+        } elseif ($filter === 'waiting_admin') {
+            $query->whereIn('status', ['waiting_admin', 'changes_requested', 'new', 'under_review', 'needs_information']);
+        } elseif ($filter === 'waiting_customer') {
+            $query->where('status', 'waiting_customer');
+        } elseif ($filter === 'draft') {
+            $query->where('status', 'draft');
+        } elseif ($filter === 'rejected') {
+            $query->where('status', 'rejected');
+        } elseif ($filter === 'awaiting_payment') {
+            $query->where('status', 'payment_requested');
+        } elseif ($filter === 'paid') {
+            $query->where('status', 'payment_confirmed');
+        } elseif ($filter === 'cancelled') {
+            $query->where('status', 'cancelled');
+        } else {
+            $query->where('is_order', false);
+        }
         return view('admin.quotations.index', [
-            'quotations' => Quotation::with('customer')->withCount('items')->latest()->get(),
-            'newCount' => Quotation::where('status', 'new')->count(),
+            'quotations' => $query->latest()->get(),
+            'filter' => $filter,
+            'counts' => [
+                'waiting_admin' => Quotation::whereIn('status', ['waiting_admin', 'changes_requested', 'new', 'under_review', 'needs_information'])->count(),
+                'draft' => Quotation::where('status', 'draft')->count(),
+                'waiting_customer' => Quotation::where('status', 'waiting_customer')->count(),
+                'payment_review' => Quotation::where('status', 'payment_review')->count(),
+                'awaiting_payment' => Quotation::where('status', 'payment_requested')->count(),
+                'paid' => Quotation::where('status', 'payment_confirmed')->count(),
+                'rejected' => Quotation::where('status', 'rejected')->count(),
+                'cancelled' => Quotation::where('status', 'cancelled')->count(),
+                'orders' => Quotation::where(function ($q) { $q->where('is_order', true)->orWhereIn('status', ['payment_requested', 'payment_review', 'payment_confirmed', 'processing', 'shipped', 'completed']); })->count(),
+            ],
         ]);
     }
 
@@ -89,7 +123,7 @@ class AdminQuotationController extends Controller
                 'customer_note' => $data['customer_note'] ?? null,
                 'payment_instructions' => $data['payment_instructions'] ?? self::DEFAULT_PAYMENT_INSTRUCTIONS,
                 'admin_note' => $data['admin_note'] ?? null,
-                'status' => 'new',
+                'status' => 'draft',
                 'subtotal' => 0,
                 'delivery_fee' => 0,
                 'discount_amount' => 0,
@@ -159,7 +193,9 @@ class AdminQuotationController extends Controller
                 ->orderBy('name')
                 ->get(),
             'variants' => ProductVariant::where('is_active', true)->with(['product', 'values.attribute'])->orderBy('sku')->get(),
-            'statuses' => Quotation::STATUSES,
+            'statuses' => array_values(array_filter(Quotation::STATUSES, function ($status) use ($quotation) {
+                return $status !== 'accepted' || $quotation->status === 'accepted';
+            })),
         ]);
     }
 
@@ -303,6 +339,7 @@ class AdminQuotationController extends Controller
             $quotation->customer_note = $data['customer_note'] ?? null;
             $quotation->admin_note = $data['admin_note'] ?? null;
             $quotation->payment_instructions = $data['payment_instructions'] ?? self::DEFAULT_PAYMENT_INSTRUCTIONS;
+            $previousStatus = $quotation->status;
             $quotation->status = $data['status'];
 
             $totals = $this->totals($quotation->items()->get());
@@ -330,16 +367,89 @@ class AdminQuotationController extends Controller
             }
             $quotation->save();
 
+            $event = $previousStatus !== $quotation->status && $quotation->status === 'waiting_customer'
+                ? 'sent_to_customer'
+                : 'admin_update';
+
             QuotationRevision::create([
                 'quotation_id' => $quotation->id,
                 'user_id' => auth()->id(),
-                'event' => 'admin_update',
+                'event' => $event,
                 'snapshot' => $this->snapshot($quotation->fresh('items')),
             ]);
         });
 
         return redirect()->route('admin.quotations.edit', $quotation)
             ->with('status', 'Quotation updated and revision saved.');
+    }
+
+    public function convertToOrder(Quotation $quotation)
+    {
+        abort_unless($quotation->status === 'accepted' && !$quotation->is_order, 422);
+        DB::transaction(function () use ($quotation) {
+            $quotation = Quotation::whereKey($quotation->id)->lockForUpdate()->firstOrFail();
+            abort_unless($quotation->status === 'accepted' && !$quotation->is_order, 422);
+            $quotation->is_order = true;
+            $quotation->status = 'payment_requested';
+            $quotation->payment_requested_at = now();
+            $quotation->save();
+            QuotationRevision::create(['quotation_id' => $quotation->id, 'user_id' => auth()->id(), 'event' => 'converted_to_order', 'snapshot' => $this->snapshot($quotation->fresh('items'))]);
+        });
+        return redirect()->route('admin.quotations.edit', $quotation)->with('status', 'Quotation converted to an order. Payment is now pending.');
+    }
+
+    public function acceptForCustomer(Quotation $quotation)
+    {
+        abort_unless($quotation->status === 'waiting_customer' && !$quotation->is_order, 422);
+        DB::transaction(function () use ($quotation) {
+            $locked = Quotation::whereKey($quotation->id)->lockForUpdate()->firstOrFail();
+            abort_unless($locked->status === 'waiting_customer' && !$locked->is_order, 422);
+            $locked->status = 'accepted';
+            $locked->decision_note = 'Accepted by admin on behalf of the customer.';
+            $locked->save();
+            QuotationRevision::create(['quotation_id' => $locked->id, 'user_id' => auth()->id(), 'event' => 'admin_accepted', 'snapshot' => $this->snapshot($locked->fresh('items'))]);
+        });
+        return redirect()->route('admin.quotations.edit', $quotation)->with('status', 'Quotation marked accepted by admin.');
+    }
+
+    public function returnToQuotation(Request $request, Quotation $quotation)
+    {
+        abort_unless($quotation->is_order && in_array($quotation->status, ['payment_requested', 'cancelled'], true), 422);
+        abort_if($quotation->paymentProofs()->exists() || $quotation->payment_confirmed_at, 422, 'An order with payment activity cannot be returned to quotations.');
+        $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
+        DB::transaction(function () use ($quotation, $data) {
+            $quotation = Quotation::whereKey($quotation->id)->lockForUpdate()->firstOrFail();
+            abort_unless($quotation->is_order && in_array($quotation->status, ['payment_requested', 'cancelled'], true) && !$quotation->paymentProofs()->exists(), 422);
+            $quotation->is_order = false;
+            $quotation->status = 'accepted';
+            $quotation->decision_note = $data['reason'];
+            $quotation->save();
+            QuotationRevision::create(['quotation_id' => $quotation->id, 'user_id' => auth()->id(), 'event' => 'returned_to_quotation', 'snapshot' => $this->snapshot($quotation->fresh('items')) + ['reason' => $data['reason']]]);
+        });
+        return redirect()->route('admin.quotations.edit', $quotation)->with('status', 'Order returned to accepted quotations.');
+    }
+
+    public function reviewPayment(Request $request, Quotation $quotation)
+    {
+        abort_unless($quotation->is_order && $quotation->status === 'payment_review' && $quotation->paymentProofs()->exists(), 422);
+        $data = $request->validate(['decision' => ['required', Rule::in(['approve', 'reject'])], 'reason' => ['required_if:decision,reject', 'nullable', 'string', 'max:1000']]);
+        DB::transaction(function () use ($quotation, $data) {
+            $quotation = Quotation::whereKey($quotation->id)->lockForUpdate()->firstOrFail();
+            abort_unless($quotation->status === 'payment_review' && $quotation->paymentProofs()->exists(), 422);
+            if ($data['decision'] === 'approve') {
+                $quotation->status = 'payment_confirmed';
+                $quotation->payment_confirmed_at = now();
+                $quotation->payment_rejection_reason = null;
+                $event = 'payment_approved';
+            } else {
+                $quotation->status = 'payment_requested';
+                $quotation->payment_rejection_reason = $data['reason'];
+                $event = 'payment_proof_rejected';
+            }
+            $quotation->save();
+            QuotationRevision::create(['quotation_id' => $quotation->id, 'user_id' => auth()->id(), 'event' => $event, 'snapshot' => $this->snapshot($quotation->fresh('items')) + ['reason' => $data['reason'] ?? null]]);
+        });
+        return redirect()->route('admin.quotations.edit', $quotation)->with('status', $data['decision'] === 'approve' ? 'Payment verified and order marked paid.' : 'Payment proof rejected. Customer can upload a replacement.');
     }
 
     private function validateNewItem(array $data): void

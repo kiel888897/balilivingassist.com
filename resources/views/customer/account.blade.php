@@ -13,7 +13,7 @@
         <div class="mt-7 grid gap-4 sm:grid-cols-2">
             <a href="{{ route('customer.quotations') }}" class="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-bla-400 hover:shadow-sm">
                 <span class="grid h-11 w-11 place-items-center rounded-xl bg-bla-50 text-lg text-bla-700"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i></span>
-                <span class="mt-4 block font-display text-lg font-extrabold text-bla-900">{{ __('site.quotation.title') }}</span>
+                <span class="mt-4 flex items-center gap-2 font-display text-lg font-extrabold text-bla-900">{{ __('site.quotation.title') }}@if (($pendingQuotationCount ?? 0) > 0)<span class="inline-grid h-6 min-w-6 place-items-center rounded-full bg-orange-600 px-1.5 text-xs text-white">{{ $pendingQuotationCount }}</span>@endif</span>
                 <span class="mt-1 block text-sm text-slate-500">{{ $quotationCount }} {{ __('site.quotation.title') }}</span>
             </a>
             <a href="{{ route('customer.orders') }}" class="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-bla-400 hover:shadow-sm">

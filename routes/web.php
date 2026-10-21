@@ -118,6 +118,7 @@ Route::middleware('locale')->group(function () {
         Route::post('/quotations', [CustomerQuotationController::class, 'store'])->name('customer.quotations.store');
         Route::get('/account/quotations', [CustomerQuotationController::class, 'quotations'])->name('customer.quotations');
         Route::get('/account/quotations/{quotation}', [CustomerQuotationController::class, 'showQuotation'])->name('customer.quotations.show');
+        Route::post('/account/quotations/{quotation}/respond', [CustomerQuotationController::class, 'respondToQuotation'])->name('customer.quotations.respond');
         Route::post('/account/quotations/{quotation}/payment-proofs', [QuotationPaymentProofController::class, 'storeCustomer'])->name('customer.quotations.payment-proofs.store');
         Route::get('/quotation-payment-proofs/{proof}', [QuotationPaymentProofController::class, 'download'])->name('quotation-payment-proofs.download');
         Route::get('/quotation-payment-proofs/{proof}/preview', [QuotationPaymentProofController::class, 'preview'])->name('quotation-payment-proofs.preview');
@@ -174,6 +175,10 @@ Route::middleware('locale')->group(function () {
                 Route::post('/quotations', [AdminQuotationController::class, 'store'])->name('admin.quotations.store');
                 Route::get('/quotations/{quotation}', [AdminQuotationController::class, 'edit'])->name('admin.quotations.edit');
                 Route::put('/quotations/{quotation}', [AdminQuotationController::class, 'update'])->name('admin.quotations.update');
+                Route::post('/quotations/{quotation}/convert-to-order', [AdminQuotationController::class, 'convertToOrder'])->name('admin.quotations.convert');
+                Route::post('/quotations/{quotation}/accept', [AdminQuotationController::class, 'acceptForCustomer'])->name('admin.quotations.accept');
+                Route::post('/orders/{quotation}/return-to-quotation', [AdminQuotationController::class, 'returnToQuotation'])->name('admin.orders.return-to-quotation');
+                Route::post('/orders/{quotation}/payment-review', [AdminQuotationController::class, 'reviewPayment'])->name('admin.orders.payment-review');
                 Route::post('/quotations/{quotation}/payment-proofs', [QuotationPaymentProofController::class, 'storeAdmin'])->name('admin.quotations.payment-proofs.store');
                 Route::post('/quotations/{quotation}/public-link', [AdminQuotationController::class, 'regeneratePublicLink'])->name('admin.quotations.public-link.regenerate');
             });

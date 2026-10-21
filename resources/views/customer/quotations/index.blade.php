@@ -20,6 +20,7 @@
                 <div>
                     <p class="font-bold text-bla-900">{{ $quotation->quote_number }}</p>
                     <p class="mt-1 text-sm text-slate-500">{{ __('site.quotation.created') }} · {{ $quotation->created_at->format('d M Y') }}</p>
+                    @if ($quotation->status === 'waiting_customer')<p class="mt-2 inline-flex items-center gap-2 text-xs font-extrabold text-orange-700"><span class="h-2 w-2 rounded-full bg-orange-500"></span>Action needed</p>@endif
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
                     <span class="rounded-full bg-bla-50 px-3 py-1.5 text-xs font-bold text-bla-700">{{ __('site.quotation.status_labels.' . $quotation->status) }}</span>

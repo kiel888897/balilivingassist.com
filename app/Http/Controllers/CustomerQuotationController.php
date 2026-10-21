@@ -84,7 +84,7 @@ class CustomerQuotationController extends Controller
                 'customer_phone' => $data['customer_phone'],
                 'shipping_address' => $data['shipping_address'],
                 'customer_note' => $data['customer_note'] ?? null,
-                'status' => 'new',
+                'status' => 'waiting_admin',
                 'subtotal' => $subtotal,
                 'delivery_fee' => 0,
                 'discount_amount' => 0,
@@ -135,7 +135,7 @@ class CustomerQuotationController extends Controller
     {
         $this->ensureCustomer();
         $quotations = $request->user()->quotations()
-            ->whereNotIn('status', Quotation::ORDER_STATUSES)
+            ->where('is_order', false)
             ->withCount('items')
             ->latest()
             ->get();
@@ -161,11 +161,39 @@ class CustomerQuotationController extends Controller
         return view('customer.quotations.show', ['quotation' => $quotation]);
     }
 
+    public function respondToQuotation(Request $request, Quotation $quotation)
+    {
+        $this->ensureCustomer();
+        abort_unless((int) $quotation->user_id === (int) $request->user()->id, 404);
+        abort_unless($quotation->status === 'waiting_customer' && !$quotation->is_order, 422);
+        $data = $request->validate([
+            'action' => ['required', 'in:accept,reject,request_changes'],
+            'note' => ['required_if:action,reject,request_changes', 'nullable', 'string', 'max:2000'],
+        ]);
+        $status = ['accept' => 'accepted', 'reject' => 'rejected', 'request_changes' => 'changes_requested'][$data['action']];
+        DB::transaction(function () use ($quotation, $request, $data, $status) {
+            $locked = Quotation::whereKey($quotation->id)->lockForUpdate()->firstOrFail();
+            abort_unless($locked->status === 'waiting_customer' && !$locked->is_order, 422);
+            $locked->status = $status;
+            $locked->decision_note = $data['note'] ?? null;
+            $locked->save();
+            QuotationRevision::create([
+                'quotation_id' => $locked->id,
+                'user_id' => $request->user()->id,
+                'event' => 'customer_' . $data['action'],
+                'snapshot' => $this->snapshot($locked->fresh('items')) + ['note' => $data['note'] ?? null],
+            ]);
+        });
+        return redirect()->route('customer.quotations.show', $quotation)->with('status', __('site.quotation.status_labels.' . $status));
+    }
+
     public function orders(Request $request)
     {
         $this->ensureCustomer();
         $orders = $request->user()->quotations()
-            ->whereIn('status', Quotation::ORDER_STATUSES)
+            ->where(function ($query) {
+                $query->where('is_order', true)->orWhereIn('status', ['payment_requested', 'payment_review', 'payment_confirmed', 'processing', 'shipped', 'completed']);
+            })
             ->withCount('items')
             ->latest()
             ->get();

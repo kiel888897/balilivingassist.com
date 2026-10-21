@@ -34,6 +34,38 @@ $rentalPeriodLabels = [
 </div>
 @endif
 
+@if ($quotation->status === 'waiting_admin' || $quotation->status === 'changes_requested')
+<section class="panel" style="margin-bottom:18px;padding:18px 22px;border:1px solid #d7e9e5;background:linear-gradient(120deg,#f0faf7,#fff);">
+    <strong style="display:block;color:#173d46;font-size:16px;">Admin action needed</strong>
+    <span class="subtext">{{ $quotation->status === 'changes_requested' ? 'Customer requested a revision: ' . ($quotation->decision_note ?: 'No note provided.') : 'Review this customer request, prepare pricing, then save it as Waiting for customer when ready.' }}</span>
+</section>
+@elseif ($quotation->status === 'waiting_customer')
+<section class="panel" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;padding:18px 22px;border:1px solid #eadfb9;background:linear-gradient(120deg,#fff9e9,#fff);">
+    <div><strong style="display:block;color:#173d46;font-size:16px;">Waiting for customer</strong><span class="subtext">Customer response keeps the quotation in this queue until they accept, reject, or request changes.</span></div>
+    <form action="{{ route('admin.quotations.accept', $quotation) }}" method="POST">@csrf<button class="btn" type="submit" onclick="return confirm('Record this quotation as accepted by admin on behalf of the customer?')"><i class="fa-solid fa-check" aria-hidden="true"></i> Record acceptance</button></form>
+</section>
+@elseif ($quotation->status === 'accepted' && !$quotation->is_order)
+<section class="panel" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;padding:18px 22px;border:1px solid #cce9da;background:linear-gradient(120deg,#effaf4,#fff);">
+    <div><strong style="display:block;color:#145c41;font-size:16px;">Quotation accepted</strong><span class="subtext">Convert it to an order when you are ready to request payment.</span></div>
+    <form action="{{ route('admin.quotations.convert', $quotation) }}" method="POST">@csrf<button class="btn" type="submit"><i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i> Convert to order</button></form>
+</section>
+@elseif ($quotation->status === 'payment_review')
+<section class="panel" style="margin-bottom:18px;padding:20px 22px;border:1px solid #e8d7a7;background:linear-gradient(120deg,#fff9e9,#fff);">
+    <strong style="display:block;color:#173d46;font-size:16px;">Payment proof needs review</strong><span class="subtext">Verify the uploaded proof before marking this order paid.</span>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+        <form action="{{ route('admin.orders.payment-review', $quotation) }}" method="POST">@csrf<input type="hidden" name="decision" value="approve"><button class="btn" type="submit"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verify payment</button></form>
+        <form action="{{ route('admin.orders.payment-review', $quotation) }}" method="POST" style="display:flex;gap:8px;flex:1;min-width:250px;">@csrf<input type="hidden" name="decision" value="reject"><input name="reason" required maxlength="1000" placeholder="Required reason for rejecting proof" style="flex:1;min-width:180px;"><button class="btn btn-light" type="submit" style="color:#9f2727;">Reject proof</button></form>
+    </div>
+</section>
+@endif
+
+@if ($quotation->isOrder() && in_array($quotation->status, ['payment_requested', 'cancelled'], true) && $quotation->paymentProofs->isEmpty() && !$quotation->payment_confirmed_at)
+<section class="panel" style="margin-bottom:18px;padding:18px 22px;border:1px solid #e3e9e8;">
+    <strong style="display:block;color:#173d46;">Need to revise this order?</strong><span class="subtext">An order without payment activity can return to accepted quotations.</span>
+    <form action="{{ route('admin.orders.return-to-quotation', $quotation) }}" method="POST" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">@csrf<input name="reason" required maxlength="1000" placeholder="Reason for returning to quotation" style="flex:1;min-width:240px;"><button class="btn btn-light" type="submit">Return to quotation</button></form>
+</section>
+@endif
+
 <div class="content-grid quotation-editor-layout" style="align-items:start;">
     <section class="panel">
         <div class="panel-heading">
