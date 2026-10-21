@@ -1284,7 +1284,7 @@
                 @foreach ($navGroups as $group)
                 @php($items = array_values(array_filter($group['items'], fn ($item) => $navUser->hasPermissionTo($item['can']))))
                 @if (count($items))
-                @php($groupOpen = request()->routeIs('admin.quotations') && collect($items)->contains(fn ($item) => request('status', 'all') === ($item['query'] ?? 'all')))
+                @php($groupOpen = collect($items)->contains(fn ($item) => request()->routeIs($item['match']) && request('status', 'all') === ($item['query'] ?? 'all')))
                 <div class="nav-group {{ $groupOpen ? 'is-open' : '' }}" data-nav-group>
                     <button class="nav-group-toggle" type="button" aria-expanded="{{ $groupOpen ? 'true' : 'false' }}">
                         <i class="fa-solid {{ $group['icon'] }} w-5 text-center" aria-hidden="true"></i>
