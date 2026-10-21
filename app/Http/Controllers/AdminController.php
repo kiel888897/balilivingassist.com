@@ -7,7 +7,9 @@ use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
+use App\Models\Quotation;
 use App\Support\HtmlSanitizer;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,6 +21,8 @@ class AdminController extends Controller
 {
     public function index()
     {
+        $canManageQuotations = Auth::user()->hasPermissionTo('quotes.manage');
+
         return view('admin.index', [
             'categories' => Category::withCount('products')->get(),
             'products' => Product::with('category')->latest()->take(8)->get(),
@@ -28,6 +32,16 @@ class AdminController extends Controller
                 'sales' => Product::where('for_sale', true)->count(),
                 'rentals' => Product::where('for_rental', true)->count(),
             ],
+            'workflowStats' => $canManageQuotations ? [
+                'quotations' => Quotation::where('is_order', false)->count(),
+                'waiting_admin' => Quotation::whereIn('status', ['waiting_admin', 'changes_requested'])->count(),
+                'waiting_customer' => Quotation::where('status', 'waiting_customer')->count(),
+                'orders' => Quotation::where(function ($query) {
+                    $query->where('is_order', true)->orWhereIn('status', Quotation::ORDER_STATUSES);
+                })->count(),
+                'awaiting_payment' => Quotation::where('status', 'payment_requested')->count(),
+                'payment_review' => Quotation::where('status', 'payment_review')->count(),
+            ] : null,
         ]);
     }
 

@@ -30,6 +30,32 @@
     </div>
 </section>
 
+@if ($workflowStats)
+<section class="content-grid" aria-label="Quotation and order overview" style="margin-bottom:22px;">
+    <article class="panel" style="overflow:hidden;border-top:3px solid #0e766e;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px 12px;">
+            <div><span style="display:inline-flex;align-items:center;gap:8px;color:#0e766e;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Sales workflow</span><h2 style="margin:9px 0 0;color:#173d46;font:800 20px 'Manrope',sans-serif;">Quotations</h2></div>
+            <span style="display:grid;width:42px;height:42px;place-items:center;border-radius:12px;background:#e8f5f3;color:#0e766e;font-size:17px;"><i class="fa-solid fa-file-signature" aria-hidden="true"></i></span>
+        </div>
+        <div style="padding:0 22px 20px;"><div style="color:#173d46;font:800 34px 'Manrope',sans-serif;">{{ number_format($workflowStats['quotations']) }}</div><p class="subtext" style="margin:3px 0 16px;">All quotation requests and offers</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:17px;"><span class="badge">{{ $workflowStats['waiting_admin'] }} waiting for admin</span><span class="badge">{{ $workflowStats['waiting_customer'] }} waiting for customer</span></div>
+            <a class="btn btn-light" href="{{ route('admin.quotations') }}">Open quotations <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></a>
+        </div>
+    </article>
+
+    <article class="panel" style="overflow:hidden;border-top:3px solid #d39b38;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px 12px;">
+            <div><span style="display:inline-flex;align-items:center;gap:8px;color:#9a6815;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Fulfilment</span><h2 style="margin:9px 0 0;color:#173d46;font:800 20px 'Manrope',sans-serif;">Orders</h2></div>
+            <span style="display:grid;width:42px;height:42px;place-items:center;border-radius:12px;background:#fff5df;color:#a16c11;font-size:17px;"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i></span>
+        </div>
+        <div style="padding:0 22px 20px;"><div style="color:#173d46;font:800 34px 'Manrope',sans-serif;">{{ number_format($workflowStats['orders']) }}</div><p class="subtext" style="margin:3px 0 16px;">Orders created from accepted quotations</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:17px;"><span class="badge">{{ $workflowStats['awaiting_payment'] }} awaiting payment</span><span class="badge">{{ $workflowStats['payment_review'] }} proof review</span></div>
+            <a class="btn btn-light" href="{{ route('admin.quotations', ['status' => 'orders']) }}">Open orders <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></a>
+        </div>
+    </article>
+</section>
+@endif
+
 @if (Auth::user()->hasPermissionTo('catalog.view'))
 <div class="content-grid">
     <section class="panel">
